@@ -1,5 +1,5 @@
 const { hospitalesMock } = require('../utils/mocks/hospitales');
-
+const fs = require("fs");
 
 class HospitalesService {
 
@@ -28,8 +28,10 @@ class HospitalesService {
         return deletedHospitalId;
     }
 
- 
+
 }
+
+
 
 
 module.exports = HospitalesService;

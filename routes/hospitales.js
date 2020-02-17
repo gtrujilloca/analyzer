@@ -13,7 +13,7 @@ function hospitalesApi (app){
 
     router.get("/", async function(req, res, next){
         const { tags } = req.query;
-
+        console.log(req.query);
         try{
             const hospitales = await hospitalesService.getHospitales({ tags });
 
@@ -27,20 +27,20 @@ function hospitalesApi (app){
     });
 
 
-    router.get("/:hospitalId", async function(req, res, next){
-        const { hospitalId } = req.params;
+    // router.get("/:hospitalId", async function(req, res, next){
+    //     const { hospitalId } = req.params;
         
-        try{
-            const hospitales = await hospitalesService.getHospital({ hospitalId });
+    //     try{
+    //         const hospitales = await hospitalesService.getHospital({ hospitalId });
 
-            res.status(200).json({
-                data: hospitales,
-                message: "hospital listados"
-            });
-        }catch(err){
-            next(err);
-        }
-    });
+    //         res.status(200).json({
+    //             data: hospitales,
+    //             message: "hospital listados"
+    //         });
+    //     }catch(err){
+    //         next(err);
+    //     }
+    // });
 
 
     router.post("/", async function(req, res, next){
@@ -89,6 +89,37 @@ function hospitalesApi (app){
             res.status(200).json({
                 data: deleteHospitales,
                 message: "hospital eliminado"
+            });
+        }catch(err){
+            next(err);
+        }
+    });
+
+    router.get("/readfile", async function(req, res, next){
+        const { tags } = req.query;
+
+        try{
+            const hospitales = await hospitalesService.readFile({ tags });
+            
+            res.status(200).json({
+                data: hospitales,
+                message: "hospitales listados"
+            });
+        }catch(err){
+            next(err);
+        }
+    });
+
+    router.post("/automator/:id", async function(req, res, next){
+        const { hospital } = req.param;
+        console.log(hospital);
+        try{
+            
+            const createHospitales = await hospitalesService.automatorWatcher({  });
+
+            res.status(201).json({
+                data: createHospitales,
+                message: "hospital creado"
             });
         }catch(err){
             next(err);
