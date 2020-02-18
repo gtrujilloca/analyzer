@@ -10,64 +10,61 @@ const clasificador = require("./clasificadores");
 var exec = require('child_process').exec, child;
 
 
-
-var path = "/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS";
-
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
-function showFiles(path) {
+function searchFiles(path) {
   //leo el directorio que quiero inspeccionar
-
-    fs.readdir(path, (err, files) => {
-      //verifico que la ruta sea correcta y que no haya ningun error
-      if (err) {
-        return console.log(err);
-      }
-      //si no hay ningun problema realizo 
-      for (let i = 0; i < files.length; i++) {
-        //concateno la carpeta contenedora con la carpera nueva a leer
-        var stats = fs.statSync(path + "/" + files[i]);
-        //verifico que el archivo sea una carpeta 
-        if (stats.isDirectory()) {
-          //console.log(extname.dirname(path+"/"+ files[i]));
-          //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
-          showFiles(path + "/" + files[i]);
-        } else {
-          //si no es un archivo por lo tanto no lo abro y verifico que en la carpeta haya un Json para realizar la operacion 
-          if (extname.extname(files[i]) === ".json") {
-            console.log(extname.parse(path + "/" + files[i]));
+  fs.readdir(path, (err, files) => {
+    //verifico que la ruta sea correcta y que no haya ningun error
+    if (err) {
+      return console.log(err);
+    }
+    //si no hay ningun problema realizo 
+    for (let i = 0; i < files.length; i++) {
+      //concateno la carpeta contenedora con la carpera nueva a leer
+      var stats = fs.statSync(path + "/" + files[i]);
+      //verifico que el archivo sea una carpeta 
+      if (stats.isDirectory()) {
+        //console.log(extname.dirname(path+"/"+ files[i]));
+        //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
+        searchFiles(path + "/" + files[i]);
+      } else {
+        //si no es un archivo por lo tanto no lo abro y verifico que en la carpeta haya un Json para realizar la operacion 
+        if (extname.extname(files[i]) === ".json") {
+          //console.log(extname.parse(path + "/" + files[i]));
+          if (readFile(path + "/" + files[i]).estado == 1) {
+            console.log("para procesar");
             //llamo metodo para generar un docuemento 
-            generateDocument(extname.parse(path + "/" + files[i]).dir, extname.parse(path + "/" + files[i]).name);
-            
+            //generateDocument(extname.parse(path + "/" + files[i]));
+            clasificador(extname.parse(path + "/" + files[i]));
           }
         }
       }
-    })
+    }
+  })
 }
 
 
 //funcion generar archivo .sh para ejecutar octave en octave hay que darle permisos de super usuario en el servidor por primera vez
-function generateDocument(pathPaciente, nameFile) {
+function generateDocument(pathPaciente) {
   //creo la variable de los comando respectivos para ejecutar octave
-  var comand = "cd /home/andresagudelo/Documentos/OCTAVEproyects/CodigoOctavePaciente; pwd; analyzer('" + pathPaciente + "',[2 3 5 8 9 10]);";
+  var comand = "cd /home/andresagudelo/Documentos/OCTAVEproyects/CodigoOctavePaciente; analyzer('" + pathPaciente.dir + "', [" + readFile(pathPaciente.dir + "/" + pathPaciente.base).Pathologies_Studied + "])";
   //creo el archivo .sh en la carpeta ejecutables
-  fs.writeFile('services/OctaveEjecutables/' + nameFile + '.sh', comand, function (err, data) {
+  fs.writeFile('services/OctaveEjecutables/' + pathPaciente.name + '.sh', comand, function (err, data) {
     //si hay un error lo muestro
     if (err) {
       return console.log(err);
     }
     //si no llamo la funcion cmd donde ejecuto el archivo creado respectivamente
-    //console.log(data);
-    cmd(nameFile);
+    cmd(pathPaciente);
   });
 }
 
 
 
 //funcion Cmd para ejecutar comando de consola 
-function cmd(nameFile) {
+function cmd(pathPaciente) {
   // Creamos la función y pasamos el string pwd le damos permiso total al archivo creado
-  child = exec('chmod 777 services/OctaveEjecutables/' + nameFile + '.sh',
-    // Pasamos los parámetros error, stdout la salida andres1006
+  child = exec('chmod 777 services/OctaveEjecutables/' + pathPaciente.name + '.sh',
     // que mostrara el comando
     function (error, stdout, stderr) {
       // Imprimimos en pantalla con console.log
@@ -78,66 +75,52 @@ function cmd(nameFile) {
       }
     });
   // que será nuestro comando a ejecutar comando de ejececion de octave
-  child = exec('octave services/OctaveEjecutables/' + nameFile + '.sh',
-    // Pasamos los parámetros error, stdout la salida andres1006
+  child = exec('octave services/OctaveEjecutables/' + pathPaciente.name + '.sh',
     // que mostrara el comando
     function (error, stdout, stderr) {
       // Imprimimos en pantalla con console.log
-      
-      if(stdout != ""){
-        console.log("termine "+nameFile);
-        deleteFile(nameFile);
-        clasificador;
+      //verificamos la salida para ver si ya termino el proceso de crear archivos
+      if (stdout != "") {
+        deleteFile('services/OctaveEjecutables/', pathPaciente.name + '.sh');
+        //clasificador(pathPaciente);
       }
-      
+
       // controlamos el error
       if (error !== null) {
         console.log('exec error: ' + error);
       }
     });
   //llamo a la funcion borrar archivo de ejecucion creado
- 
 }
 
 
 //funcion borrar archivo
-function deleteFile(nameFile) {
-    //le damos la ruta y nombre del archivo a eliminar
-    fs.unlink('services/OctaveEjecutables/' + nameFile + '.sh', function (err) {
-      //si hay un error 
-      if (err) throw err;
-      console.log('file deleted ' + nameFile);
-    });
-}
-
-
-//funcion de leer archivo
-function readFile() {
-  //damos la ruta del arichivo a leer 
-  fs.readFile('/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/temp/ControlesGrupoA/paciente_grupoA_1/a.json', 'utf-8', (err, data) => {
-    //si hay un error lo vemos
-    if (err) {
-      console.log('error: ', err);
-      //sino encontro y leyo el archivo
-    } else {
-      //ejecutamos y convertimos el archivo a Json
-      console.log("Encontrado y convertido");
-      console.table(JSON.parse(data));
-    }
+function deleteFile(path, nameFile) {
+  //le damos la ruta y nombre del archivo a eliminar
+  fs.unlink(path + nameFile, function (err) {
+    //si hay un error 
+    if (err) throw err;
+    //sino muestro el resultado
+    console.log('file deleted ' + nameFile);
   });
-  console.log('Buscando...');
 }
 
 
-function readFilee() {
-  var file = fs.readFileSync('/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/temp/ControlesGrupoA/paciente_grupoA_1/a.json', 'utf-8');
-  return JSON.parse(file);
+//funcion para leer un archivo
+function readFile(path) {
+  try {
+    //creo el retorno de la lectura
+    var file = fs.readFileSync(path, 'utf-8');
+    //retorno el archivo leido
+    return JSON.parse(file);
+  } catch (error) {
+    //capturo un erro si hubo en la lectura
+    console.log(error);
+  }
 }
 
-
-showFiles(path);
-
-
+module.exports = searchFiles;
+//showFiles();
 
 
 
