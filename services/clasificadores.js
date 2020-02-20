@@ -5,6 +5,8 @@ const fs = require("fs");
 const extname = require("path");
 // llamado child_process
 var exec = require('child_process').exec, child;
+//invoco servicio para subir a Base de datos
+const push_DB_test = require("./push_bd_test.js");
 
 
 function clasificador(pathPaciente) {
@@ -20,31 +22,64 @@ function clasificador(pathPaciente) {
         break;
       case 2:
         console.log('Alzheimer = posicion ' + i);
-        console.log(checkFiles(pathPaciente, "Estudio_AD.csv"));
-        //generateDocument(pathPaciente, "Estudio_AD", "Clasificador_EA_vs_control/src");
-        break;
+        if (checkFiles(pathPaciente, "Estudio_AD.csv")) {
+          generateDocument(pathPaciente, "Estudio_AD", "Clasificador_EA_vs_control/src");
+          break;
+        } else {
+          console.log("no hay archivo correspondiente a la prueba");
+          break;
+        }
       case 3:
-        console.log('Parkinson = posicion ' + i);
-        //generateDocument(pathPaciente, "Estudio_PD", "Clasificador_Parkinson_vs_control/src");
-        break;
+        if (checkFiles(pathPaciente, "Estudio_PD.csv")) {
+          console.log('Parkinson = posicion ' + i);
+          generateDocument(pathPaciente, "Estudio_PD", "Clasificador_Parkinson_vs_control/src");
+          break;
+        } else {
+          console.log("no hay archivo correspondiente a la prueba");
+          break;
+        }
       case 5:
+        if (checkFiles(pathPaciente, "Estudio_FTD.csv")) {
         console.log('frontotemporal demental = posicion ' + i);
         //generateDocument(pathPaciente, "Estudio_FTD" , "Clasificador_DFT_vs_control/src");
         break;
+      }else{
+        console.log("no hay archivo correspondiente a la prueba");
+        break;
+      }
       case 9:
+        if (checkFiles(pathPaciente, "Estudio_MCI.csv")) {
         console.log('mild coginitive imporment = posicion ' + i);
-        //generateDocument(pathPaciente, "Estudio_MCI", "Clasificador_DCL_vs_control/src");
+        generateDocument(pathPaciente, "Estudio_MCI", "Clasificador_DCL_vs_control/src");
         break;
+      }else{
+        console.log("no hay archivo correspondiente a la prueba");
+        break;
+      }
       case 8:
+        if (checkFiles(pathPaciente, "Estudio_MHE.csv")) {
         console.log('encefalopatia Hipatica minima = posicion ' + i);
-        //generateDocument(pathPaciente, "Estudio_MHE", "Clasificador_EHM_vs_control/src");
+        generateDocument(pathPaciente, "Estudio_MHE", "Clasificador_EHM_vs_control/src");
         break;
+      }else{
+        console.log("no hay archivo correspondiente a la prueba");
+        break;
+      }
       case 10:
+        if (checkFiles(pathPaciente, "Estudio_PKS.csv")) {
         console.log('parkinsonimos = posicion ' + i);
-        //generateDocument(pathPaciente, "Estudio_PKS", "Clasificador_Parkinsionismos_vs_control/src");
+        generateDocument(pathPaciente, "Estudio_PKS", "Clasificador_Parkinsionismos_vs_control/src");
         break;
+      }else{
+        console.log("no hay archivo correspondiente a la prueba");
+        break;
+      }
       default:
         console.log('Sin especificar ' + jsonpaciente.Pathologies_Studied[i]);
+    }
+    if((i+1)===jsonpaciente.Pathologies_Studied.length){
+      //INVOCO METODOS PARA GUARDAR LAS CALIBRACIONES Y PATOLOGIAS
+      push_DB_test();
     }
   }
 }
@@ -54,15 +89,15 @@ function clasificador(pathPaciente) {
 //funcion generar archivo .sh para ejecutar octave en octave hay que darle permisos de super usuario en el servidor por primera vez
 function generateDocument(pathPaciente, nameClass, rutaClass) {
   //creo la variable de los comando respectivos para ejecutar octave
-  var comand = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/" + rutaClass + "; ./main " + pathPaciente.dir + " " + nameClass + ".csv;";
+  var comand = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/" + rutaClass + "; ./main "+pathPaciente.dir+" "+csvToString(pathPaciente.dir+"/"+nameClass+".csv");
   //creo el archivo .sh en la carpeta ejecutables
-  fs.writeFile('services/OctaveEjecutables/' + nameClass + '.sh', comand, function (err, data) {
+  fs.writeFile('services/OctaveEjecutables/' + pathPaciente.name+"_"+nameClass + '.sh', comand, function (err, data) {
     //si hay un error lo muestro
     if (err) {
       return console.log(err);
     }
     //si no llamo la funcion cmd donde ejecuto el archivo creado respectivamente
-    cmd(nameClass);
+    cmd(pathPaciente.name+"_"+nameClass);
   });
 }
 
@@ -75,10 +110,10 @@ function cmd(nameClass) {
     // que mostrara el comando
     function (error, stdout, stderr) {
       // Imprimimos en pantalla con console.log
-      console.log(stdout);
+      //console.log(stdout);
       // controlamos el error
-      if (stdout !== null) {
-        console.log('exec error: ' + stdout);
+      if (error !== null) {
+        console.log('exec error al crear bash: ' + error);
       }
     });
   // que será nuestro comando a ejecutar comando de ejececion de octave
@@ -87,18 +122,19 @@ function cmd(nameClass) {
     function (error, stdout, stderr) {
       // Imprimimos en pantalla con console.log
       //verificamos la salida para ver si ya termino el proceso de crear archivos
-      console.log(stdout + " " + stderr);
+      //console.log(stdout + " " + stderr);
       if (stdout != "") {
-        console.log("termine clasificador " + nameClass)
+        //console.log("termine clasificador " + nameClass + " = "+ stdout)
+        //llamo a la funcion borrar archivo de ejecucion creado
         deleteFile('services/OctaveEjecutables/', nameClass + '.sh');
       }
 
       // controlamos el error
-      if (stdout !== null) {
-        console.log('exec error: ' + stdout);
+      if (error !== null) {
+        console.log('exec error al ejecutar bash: ' + stdout);
       }
     });
-  //llamo a la funcion borrar archivo de ejecucion creado
+  
 }
 
 //funcion borrar archivo
@@ -136,15 +172,28 @@ function checkFiles(path, className) {
     })
 
     if (a.indexOf(className) === -1) {
-     return false;
+      return false;
     } else if (a.indexOf(className) > -1) {
       return true;
     }
   } catch (err) {
     return (err);
   }
+}
 
 
+function csvToString(path) {
+  try {
+    //creo el retorno de la lectura
+    var file = fs.readFileSync(path, 'utf-8');
+    //retorno el archivo leido
+    file = file.replace(/,/g," ");
+    //console.log(file);
+    return(file);
+  } catch (error) {
+    //capturo un erro si hubo en la lectura
+    console.log(error);
+  }  
 }
 
 

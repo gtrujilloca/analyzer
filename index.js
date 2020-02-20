@@ -8,12 +8,13 @@ const hospitalesApi = require('./routes/hospitales.js');
 const searchFiles = require('./services/runoctave.js');
 
 const path = "/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS";
-
+const push_DB_test = require('./services/push_bd_test.js');
 
 //falta instalar modulo node-cron
 //cron.schedule('*/30 * * * * *', () => {
     //console.log('Verifico Archivos');
     searchFiles(path);
+    //push_DB_test();
   //});
   
 

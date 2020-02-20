@@ -1,1 +1,0 @@
-cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_Parkinsionismos_vs_control/src; ./main /home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/Hospital1/ControlesGrupoA/paciente_grupoA_1 Estudio_PKS.csv;
