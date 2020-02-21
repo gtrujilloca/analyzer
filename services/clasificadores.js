@@ -6,8 +6,8 @@ const extname = require("path");
 // llamado child_process
 var exec = require('child_process').exec, child;
 //invoco servicio para subir a Base de datos
-const push_DB_test = require("./push_bd_test.js");
-
+const push_DB_datos = require("./push_bd_datos.js");
+const uploadToDBToTest= require("./push_bd_test.js");
 
 function clasificador(pathPaciente) {
   var jsonpaciente = readFile(pathPaciente.dir + "/" + pathPaciente.base);
@@ -79,7 +79,8 @@ function clasificador(pathPaciente) {
     }
     if((i+1)===jsonpaciente.Pathologies_Studied.length){
       //INVOCO METODOS PARA GUARDAR LAS CALIBRACIONES Y PATOLOGIAS
-      push_DB_test();
+      push_DB_datos(pathPaciente);
+      uploadToDBToTest(pathPaciente);
     }
   }
 }
@@ -134,7 +135,6 @@ function cmd(nameClass) {
         console.log('exec error al ejecutar bash: ' + stdout);
       }
     });
-  
 }
 
 //funcion borrar archivo

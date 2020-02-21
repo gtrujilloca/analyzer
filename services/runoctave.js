@@ -34,8 +34,8 @@ function searchFiles(path) {
           if (readFile(path + "/" + files[i]).estado == 1) {
             console.log("para procesar");
             //llamo metodo para generar un docuemento 
-            //generateDocument(extname.parse(path + "/" + files[i]));
-            clasificador(extname.parse(path + "/" + files[i]));
+            generateDocument(extname.parse(path + "/" + files[i]));
+            //clasificador(extname.parse(path + "/" + files[i]));
           }
         }
       }
