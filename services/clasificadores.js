@@ -10,6 +10,7 @@ const push_DB_datos = require("./push_bd_datos.js");
 const uploadToDBToTest= require("./push_bd_test.js");
 
 function clasificador(pathPaciente) {
+  console.log(pathPaciente);
   var jsonpaciente = readFile(pathPaciente.dir + "/" + pathPaciente.base);
   //if (jsonpaciente.Results_types)
   console.log("result types " + jsonpaciente.Results_types.AI);
@@ -41,7 +42,7 @@ function clasificador(pathPaciente) {
       case 5:
         if (checkFiles(pathPaciente, "Estudio_FTD.csv")) {
         console.log('frontotemporal demental = posicion ' + i);
-        //generateDocument(pathPaciente, "Estudio_FTD" , "Clasificador_DFT_vs_control/src");
+        generateDocument(pathPaciente, "Estudio_FTD" , "Clasificador_DFT_vs_control/src");
         break;
       }else{
         console.log("no hay archivo correspondiente a la prueba");
@@ -79,8 +80,9 @@ function clasificador(pathPaciente) {
     }
     if((i+1)===jsonpaciente.Pathologies_Studied.length){
       //INVOCO METODOS PARA GUARDAR LAS CALIBRACIONES Y PATOLOGIAS
-      push_DB_datos(pathPaciente);
-      uploadToDBToTest(pathPaciente);
+      console.log("Aqui Subo Base de datos "+ jsonpaciente.Pathologies_Studied[i] )
+      //push_DB_datos(pathPaciente);
+      //uploadToDBToTest(pathPaciente);
     }
   }
 }
