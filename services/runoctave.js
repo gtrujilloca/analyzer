@@ -5,7 +5,9 @@ const fs = require("fs");
 const extname = require("path");
 // Vamos a requerir del modulo que provee Node.js 
 const clasificador = require("./clasificadores");
+//clase para correr funciines de comando bash
 const starProcess = require("./runProcess");
+//funciones system file para manejo de archivos
 const { readFilee, createFile, deleteFile } = require('./fs');
 let runProcess = null;
 
@@ -54,8 +56,9 @@ function searchFiles(path) {
                 //si no es porque creo lo archivos correctamente
               return deleteFile({path:'services/OctaveEjecutables', nameFile:pathPaciente.name, extension:'.sh'});
               }).then(file =>{
-                console.log('elimine ejecutabe de octave de '+ file);
-                console.log('Aqui llamor a los clasificadores');
+                //console.log('elimine ejecutabe de octave de '+ file);
+                //console.log('Termine proceso de Octave');
+                clasificador(pathPaciente);
               }).catch(err => {
                 console.log("error al ejecutar el proceso"+ err);
               });

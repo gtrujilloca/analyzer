@@ -1,202 +1,261 @@
-
-//libreria de file system
-const fs = require("fs");
-//libreria de path
-const extname = require("path");
-// llamado child_process
-var exec = require('child_process').exec, child;
 //invoco servicio para subir a Base de datos
+const starProcess = require("./runProcess");
+//funciones para manejor de archivos file system
+const { readFilee, createFile, deleteFile, checkFiles } = require('./fs');
+
+//clase para subir a base de datos mongo de datos
 const push_DB_datos = require("./push_bd_datos.js");
-const uploadToDBToTest= require("./push_bd_test.js");
+//clase para subir a base de datos test
+const uploadToDBToTest = require("./push_bd_test.js");
 
-function clasificador(pathPaciente) {
-  console.log(pathPaciente);
-  var jsonpaciente = readFile(pathPaciente.dir + "/" + pathPaciente.base);
+//inicializo en null una consola
+let runProcess = null;
+
+
+//singlenton de intancia de funcion para proceso de consola
+if (!runProcess) {
+  runProcess = starProcess();
+}
+
+
+
+
+const clasificador = pathPaciente => {
+  //console.log(pathPaciente.dir + "/" + pathPaciente.base);
+  let jsonpaciente = null;
+  readFilee(pathPaciente.dir + "/" + pathPaciente.base).then(data => {
+    jsonpaciente = JSON.parse(data.toString());
+    callChecksStudies(pathPaciente, jsonpaciente);
+  }).catch(err =>{
+    console.log(err);
+  });
+}
+
+const callChecksStudies = (pathPaciente, paciente) => {
+  checkEstudies(pathPaciente, paciente).then(checkList => {
+    //console.log("Estudios Clasificados completos");
+    Promise.all(checkList).then(values => {
+      //console.log(values);
+      //console.log("aqui subo a base de datos");
+      push_DB_datos(pathPaciente);
+      uploadToDBToTest(pathPaciente);
+    }).catch(err =>{
+      console.log(err);
+    });
+  }).catch( err =>{
+    console.log(err);
+  })
+}
+
+const checkEstudies = (pathPaciente, paciente) => {
   //if (jsonpaciente.Results_types)
-  console.log("result types " + jsonpaciente.Results_types.AI);
-  console.log(" " + jsonpaciente.Pathologies_Studied.length);
-
-  for (let i = 0; i < jsonpaciente.Pathologies_Studied.length; i++) {
-    switch (jsonpaciente.Pathologies_Studied[i]) {
-      case 1:
-        console.log('Sin especificar ' + jsonpaciente.Pathologies_Studied[i]);
-        break;
-      case 2:
-        console.log('Alzheimer = posicion ' + i);
-        if (checkFiles(pathPaciente, "Estudio_AD.csv")) {
-          generateDocument(pathPaciente, "Estudio_AD", "Clasificador_EA_vs_control/src");
-          break;
-        } else {
-          console.log("no hay archivo correspondiente a la prueba");
-          break;
+  //console.log("result types " + jsonpaciente.Results_types.AI);
+  //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
+  return new Promise((resolve, reject) => {
+    try {
+      
+      //array de promoesas
+      promesasArray = [];
+      //del json pacientes solo obtenfo la propiedad patologias
+      const { Pathologies_Studied } = paciente;
+      //creo bandera para saber cuantas promesas se han resuelto
+      let addCheck = 0;
+      //ciclo para recorrer los estudios a clasificar
+      Pathologies_Studied.forEach((pathology) => {
+        //dependiendo del caso del estudio realizo la clasificacion
+        switch (pathology) {
+          case 1:
+            //esta opcion es para estudios de ejemplo
+            console.log('Sin especificar ' + pathology);
+            addCheck += 1;
+            //llamo metodo de verificar la promesa si ya fue resuelra
+            verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+            break;
+            
+          case 2:
+            //console.log('Alzheimer ');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_AD.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_AD.csv");
+              } else {
+                console.log("Archivo Estudio AD no encontrado");
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              //guardo en la variable el comando a ejecutar por bash
+              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_EA_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              promesasArray.push(runProcess(commandClasificadorAD));
+              addCheck += 1;
+              //verifico si la promesa esta resuelta
+              verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+              //console.log("Alzheimer terminado");
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 3:
+  
+            //console.log('Parkinson');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_PD.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_PD.csv");
+              } else {
+                console.log("Archivo Estudio Parkinson no encontrado");
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              //guardo en la variable el comando a ejecutar por bash
+              var commandClasificadorPD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_Parkinson_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              promesasArray.push(runProcess(commandClasificadorPD));
+              addCheck += 1;
+              //verifico si la promesa esta resuelta
+              verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+              //console.log("Parkinson terminado");
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 5:
+  
+            //console.log('frontotemporal demental' );
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_FTD.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_FTD.csv");
+              } else {
+                console.log("Archivo Estudio frontotemporal demental no encontrado");
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              //guardo en la variable el comando a ejecutar por bash
+              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_DFT_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              promesasArray.push(runProcess(commandClasificadorAD));
+              addCheck += 1;
+              //verifico si la promesa esta resuelta
+              verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+              //console.log("frontotemporal demental terminado");
+            }).catch(err =>{
+             // console.log(err);
+            });
+            break;
+  
+          case 9:
+  
+            //console.log('Mild Coginitive Imporment');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_MCI.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_MCI.csv");
+              } else {
+                console.log("Archivo Estudio Mild Coginitive Imporment no encontraod");
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              //guardo en la variable el comando a ejecutar por bash
+              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_DCL_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              promesasArray.push(runProcess(commandClasificadorAD));
+              addCheck += 1;
+              //verifico si la promesa esta resuelta
+              verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+              //console.log("Mild Coginitive Imporment terminado");
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 8:
+  
+            //console.log('Encefalopatia Hipatica Minima');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_MHE.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_MHE.csv");
+              } else {
+                console.log("Archivo Estudio Encefalopatia Hipatica Minima no encontrado");
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              //guardo en la variable el comando a ejecutar por bash
+              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_EHM_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              promesasArray.push(runProcess(commandClasificadorAD));
+              addCheck += 1;
+              //verifico si la promesa esta resuelta
+              verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+              //console.log("Encefalopatia Hipatica Minima terminado");
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 10:
+  
+            //console.log('parkinsonimos ');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_PKS.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_PKS.csv");
+              } else {
+                console.log("Archivo Estudio parkinsonimos no encontrado");
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              //guardo en la variable el comando a ejecutar por bash
+              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_Parkinsionismos_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              promesasArray.push(runProcess(commandClasificadorAD));
+              addCheck += 1;
+              //verifico si la promesa esta resuelta
+              verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
+              //console.log("parkinsonimos terminado");
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+          default:
+            console.log('Sin especificar ' + pathology);
         }
-      case 3:
-        if (checkFiles(pathPaciente, "Estudio_PD.csv")) {
-          console.log('Parkinson = posicion ' + i);
-          generateDocument(pathPaciente, "Estudio_PD", "Clasificador_Parkinson_vs_control/src");
-          break;
-        } else {
-          console.log("no hay archivo correspondiente a la prueba");
-          break;
-        }
-      case 5:
-        if (checkFiles(pathPaciente, "Estudio_FTD.csv")) {
-        console.log('frontotemporal demental = posicion ' + i);
-        generateDocument(pathPaciente, "Estudio_FTD" , "Clasificador_DFT_vs_control/src");
-        break;
-      }else{
-        console.log("no hay archivo correspondiente a la prueba");
-        break;
-      }
-      case 9:
-        if (checkFiles(pathPaciente, "Estudio_MCI.csv")) {
-        console.log('mild coginitive imporment = posicion ' + i);
-        generateDocument(pathPaciente, "Estudio_MCI", "Clasificador_DCL_vs_control/src");
-        break;
-      }else{
-        console.log("no hay archivo correspondiente a la prueba");
-        break;
-      }
-      case 8:
-        if (checkFiles(pathPaciente, "Estudio_MHE.csv")) {
-        console.log('encefalopatia Hipatica minima = posicion ' + i);
-        generateDocument(pathPaciente, "Estudio_MHE", "Clasificador_EHM_vs_control/src");
-        break;
-      }else{
-        console.log("no hay archivo correspondiente a la prueba");
-        break;
-      }
-      case 10:
-        if (checkFiles(pathPaciente, "Estudio_PKS.csv")) {
-        console.log('parkinsonimos = posicion ' + i);
-        generateDocument(pathPaciente, "Estudio_PKS", "Clasificador_Parkinsionismos_vs_control/src");
-        break;
-      }else{
-        console.log("no hay archivo correspondiente a la prueba");
-        break;
-      }
-      default:
-        console.log('Sin especificar ' + jsonpaciente.Pathologies_Studied[i]);
+      });
+    } catch (error) {
+      reject(eror);
     }
-    if((i+1)===jsonpaciente.Pathologies_Studied.length){
-      //INVOCO METODOS PARA GUARDAR LAS CALIBRACIONES Y PATOLOGIAS
-      console.log("Aqui Subo Base de datos "+ jsonpaciente.Pathologies_Studied[i] )
-      //push_DB_datos(pathPaciente);
-      //uploadToDBToTest(pathPaciente);
-    }
-  }
-}
-
-///home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/Hospital1/ControlesGrupoA/Paciente_bueno
-
-//funcion generar archivo .sh para ejecutar octave en octave hay que darle permisos de super usuario en el servidor por primera vez
-function generateDocument(pathPaciente, nameClass, rutaClass) {
-  //creo la variable de los comando respectivos para ejecutar octave
-  var comand = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/" + rutaClass + "; ./main "+pathPaciente.dir+" "+csvToString(pathPaciente.dir+"/"+nameClass+".csv");
-  //creo el archivo .sh en la carpeta ejecutables
-  fs.writeFile('services/OctaveEjecutables/' + pathPaciente.name+"_"+nameClass + '.sh', comand, function (err, data) {
-    //si hay un error lo muestro
-    if (err) {
-      return console.log(err);
-    }
-    //si no llamo la funcion cmd donde ejecuto el archivo creado respectivamente
-    cmd(pathPaciente.name+"_"+nameClass);
   });
+      //console.log(addCheck, Pathologies_Studied.length);
 }
 
-
-
-//funcion Cmd para ejecutar comando de consola 
-function cmd(nameClass) {
-  // Creamos la función y pasamos el string pwd le damos permiso total al archivo creado
-  child = exec('chmod 777 services/OctaveEjecutables/' + nameClass + '.sh',
-    // que mostrara el comando
-    function (error, stdout, stderr) {
-      // Imprimimos en pantalla con console.log
-      //console.log(stdout);
-      // controlamos el error
-      if (error !== null) {
-        console.log('exec error al crear bash: ' + error);
-      }
-    });
-  // que será nuestro comando a ejecutar comando de ejececion de octave
-  child = exec('./services/OctaveEjecutables/' + nameClass + '.sh',
-    // que mostrara el comando
-    function (error, stdout, stderr) {
-      // Imprimimos en pantalla con console.log
-      //verificamos la salida para ver si ya termino el proceso de crear archivos
-      //console.log(stdout + " " + stderr);
-      if (stdout != "") {
-        //console.log("termine clasificador " + nameClass + " = "+ stdout)
-        //llamo a la funcion borrar archivo de ejecucion creado
-        deleteFile('services/OctaveEjecutables/', nameClass + '.sh');
-      }
-
-      // controlamos el error
-      if (error !== null) {
-        console.log('exec error al ejecutar bash: ' + stdout);
-      }
-    });
-}
-
-//funcion borrar archivo
-function deleteFile(path, nameFile) {
-  //le damos la ruta y nombre del archivo a eliminar
-  fs.unlink(path + nameFile, function (err) {
-    //si hay un error 
-    if (err) throw err;
-    //sino muestro el resultado
-    console.log('file deleted ' + nameFile);
-  });
-}
-
-//funcion para leer un archivo
-function readFile(path) {
-  try {
-    //creo el retorno de la lectura
-    var file = fs.readFileSync(path, 'utf-8');
-    //retorno el archivo leido
-    return JSON.parse(file);
-  } catch (error) {
-    //capturo un erro si hubo en la lectura
-    console.log(error);
-  }
-}
-
-function checkFiles(path, className) {
-  try {
-    //leo el directorio que quiero inspeccionar
-    var a = fs.readdirSync(path.dir, (err, files) => {
-      //verifico que la ruta sea correcta y que no haya ningun error
-      if (err) {
-        return console.log(err);
-      }
-    })
-
-    if (a.indexOf(className) === -1) {
-      return false;
-    } else if (a.indexOf(className) > -1) {
-      return true;
-    }
-  } catch (err) {
-    return (err);
+const verifyPromises = (checks, pathologies, promesasArray, resolve) => {
+  if (checks === pathologies) {
+    resolve(promesasArray);
   }
 }
 
 
-function csvToString(path) {
-  try {
-    //creo el retorno de la lectura
-    var file = fs.readFileSync(path, 'utf-8');
-    //retorno el archivo leido
-    file = file.replace(/,/g," ");
-    //console.log(file);
-    return(file);
-  } catch (error) {
-    //capturo un erro si hubo en la lectura
-    console.log(error);
-  }  
-}
 
 
 

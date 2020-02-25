@@ -13,7 +13,11 @@ const path = "/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS";
 //falta instalar modulo node-cron
 //cron.schedule('*/30 * * * * *', () => {
     //console.log('Verifico Archivos');
-    runOctave(path);
+    try {
+      runOctave(path);
+    } catch (error) {
+      //console.log(error);
+    }
     //uploadToDBToDatos();
   //});
   
@@ -22,7 +26,7 @@ const path = "/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS";
 //hospitalesApi(app);
 
 
- app.listen(config.port, function(){
-     console.log(`Listening http://localhost:${config.port}`);
- });
+//  app.listen(config.port, function(){
+//      console.log(`Listening http://localhost:${config.port}`);
+//  });
 
