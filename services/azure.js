@@ -1,18 +1,23 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
-const uuidv1 = require('uuid/v1');
-//funciones system file para manejo de archivos
-const { readFilee, createFile, deleteFile } = require('./fs');
 const fs = require('fs');
-//libreria de path
-const extname = require("path");
 const azure = require('azure-storage');
+const extname = require("path");
+const axios = require('axios');
+const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
 const fileService = azure.createFileService();
+//funciones system file para manejo de archivos
+//libreria de path
+const { readFilee, createFile, deleteFile } = require('./fs');
+
+
 
 //const fileService = azure.createFileService();
 //conexion con azure
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
+const urlAzure ="https://externalstorageaccount.blob.core.windows.net/entrada/";
+
 
 async function main() {
   console.log('Azure Blob storage v12 - JavaScript quickstart sample');
@@ -23,10 +28,9 @@ async function main() {
   // Create a unique name for the container
   const containerName = 'entrada';
   // searchFiles(
-  //   '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas/Hospital1/ControlesGrupoA/paciente_grupoA_1'
+  //   '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas/Hospital1/ControlesGrupoA/paciente_grupoA_20'
   // );
   //veryBlob();
-  //walk('/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas/Hospital1/ControlesGrupoA/paciente_grupoA_1', '');
   showBlobs(blobServiceClient, containerName);
   // downloadBlobs(
   //   containerName,
@@ -44,7 +48,8 @@ async function main() {
 }
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
-function searchFiles(path) {
+function searchFiles(path, hospital, folderPadre) {
+  //console.log(folderPadre);
   //leo el directorio que quiero inspeccionar
   fs.readdir(path, (err, files) => {
     //verifico que la ruta sea correcta y que no haya ningun error
@@ -59,11 +64,24 @@ function searchFiles(path) {
       if (stats.isDirectory()) {
         //console.log(extname.dirname(path+"/"+ files[i]));
         //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
-        console.log(files[i]);
-        searchFiles(path + '/' + files[i]);
+        searchFiles(path + '/' + files[i],hospital, folderPadre);
       } else {
         //si no es un archivo por lo tanto no lo abro y verifico que en la carpeta haya un Json para realizar la operacion
-        console.log(path, files[i]);
+        var string = path.split("/");
+        //console.log(string[string.length-1], folderPadre);
+        if(string[string.length-1]!== folderPadre){
+        pathazure =  hospital+"/"+string[string.length-2]+"/"+string[string.length-1]+"/"+files[i];
+        pathFile=path+"/"+files[i];
+        //console.log(pathazure);
+        }else{
+         
+          pathazure =  hospital+"/"+string[string.length-1]+"/"+files[i];
+          pathFile=path+"/"+files[i];
+          //console.log(pathazure);
+        }
+        pushfile("entrada", {blobName:pathazure, pathFile:pathFile}).then(data=>{
+           //console.log(data);
+         })
       }
     }
   });
@@ -92,31 +110,6 @@ function pushfile(containerName, file) {
 }
 
 
-var walk = function (dir, done) {
-  var results = [];
-  fs.readdir(dir, function (err, list) {
-    if (err) return done(err);
-    var i = 0;
-    (function next() {
-      var file = list[i++];
-      if (!file) return done(null, results);
-      file = dir + '/' + file;
-      fs.stat(file, function (err2, stat) {
-        if (stat && stat.isDirectory()) {
-          walk(file, function (err3, res) {
-            results = results.concat(res);
-            next();
-          });
-        } else {
-          console.log(file);
-          results.push(file);
-          next();
-        }
-      });
-    })();
-  });
-};
-
 
 
 
@@ -130,9 +123,10 @@ async function showBlobs(blobServiceClient, containerName) {
   // List the blob(s) in the container.
   for await (const blob of containerClient.listBlobsFlat()) {
     if(extname.extname(blob.name) === ".json"){
-
-      //necesito acceder a la url y consultar la informacion de Json
-      console.log(blob.name);
+     //necesito acceder a la url y consultar la informacion de Json
+      console.log(urlAzure+blob.name);
+      const response = await axios.get(urlAzure+blob.name);
+      console.log(response);
     }
   }
 }
@@ -151,6 +145,7 @@ async function showBlobNames(aborter, containerURL) {
     }
   } while (marker);
 }
+
 
 function downloadBlobs(containerName, destinationDirectoryPath, callback) {
   console.log('Entering downloadBlobs.');
@@ -244,6 +239,8 @@ async function veryBlob() {
   });
 }
 
-main()
-  .then(() => console.log('Done'))
-  .catch(ex => console.log(ex.message));
+// main().then(data=>{
+//   console.log("Done...");
+// })
+
+module.exports = {pushfile, searchFiles};
