@@ -31,7 +31,8 @@ async function main() {
   //   '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas/Hospital1/ControlesGrupoA/paciente_grupoA_20'
   // );
   //veryBlob();
-  showBlobs(blobServiceClient, containerName);
+  //showBlobs(blobServiceClient, containerName);
+  searchJsonBlob(blobServiceClient, containerName);
   // downloadBlobs(
   //   containerName,
   //   '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso'
@@ -111,9 +112,21 @@ function pushfile(containerName, file) {
 
 
 
-
-
 async function showBlobs(blobServiceClient, containerName) {
+  // Get a reference to a container
+  const containerClient = await blobServiceClient.getContainerClient(
+    containerName
+  );
+  console.log('\nListing blobs...');
+
+  // List the blob(s) in the container.
+  for await (const blob of containerClient.listBlobsFlat()) {
+      console.log(blob.name);
+    
+  }
+}
+
+async function searchJsonBlob(blobServiceClient, containerName) {
   // Get a reference to a container
   const containerClient = await blobServiceClient.getContainerClient(
     containerName
@@ -126,25 +139,84 @@ async function showBlobs(blobServiceClient, containerName) {
      //necesito acceder a la url y consultar la informacion de Json
       console.log(urlAzure+blob.name);
       const response = await axios.get(urlAzure+blob.name);
-      console.log(response);
+      if(response.data.estado === 1){
+        //console.log(response.data);
+        downoloadBlobForPath(blobServiceClient, containerName, blob);
+      }
     }
   }
 }
 
-async function showBlobNames(aborter, containerURL) {
-  let marker = undefined;
+async function downoloadBlobForPath(blobServiceClient,containerName, blobDownoload) {
+  // Get a reference to a container
+  const containerClient = await blobServiceClient.getContainerClient(
+    containerName
+  );
+  var arrayPath = blobDownoload.name.split("/");
+  var filesDownoloaded=0;
+  // List the blob(s) in the container.
+  for await (const blob of containerClient.listBlobsFlat()) {
+    var arrayPathBlob = blob.name.split("/");
+    //verifico los blobs correspondientes al grupo del json encontrado
+    if(arrayPathBlob[0] === arrayPath[0] && arrayPathBlob[1] === arrayPath[1]){
+      filesDownoloaded++;
+        downloadBlob(
+          containerName,
+          blob,
 
-  do {
-    const listBlobsResponse = await containerURL.listBlobFlatSegment(
-      Aborter.none,
-      marker
-    );
-    marker = listBlobsResponse.nextMarker;
-    for (const blob of listBlobsResponse.segment.blobItems) {
-      console.log(` - ${blob.name}`);
+          //esta ruta hayq ue configurarla desde variables de entorno
+          '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso'
+        );
     }
-  } while (marker);
+  }
+  console.log(filesDownoloaded);
 }
+
+
+function downloadBlob(containerName, blobDownoload, destinationDirectoryPath, callback) {
+  //console.log('Entering downloadBlobs.');
+  // Validate directory
+  if (!fs.existsSync(destinationDirectoryPath)) {
+    console.log(
+      destinationDirectoryPath +
+        ' does not exist. Attempting to create this directory...'
+    );
+    fs.mkdirSync(destinationDirectoryPath);
+    console.log(destinationDirectoryPath + ' created.');
+  }
+  // NOTE: does not handle pagination. 
+      var pathNew = blobDownoload.name.split("/");
+      var pathgeneral = destinationDirectoryPath;
+      for(var i=0;i<(pathNew.length-1);i++){
+        //verifico si el directorio donde voy a guardar existe si no lo creo
+        if (!fs.existsSync(pathgeneral+"/"+pathNew[i])) {
+            pathgeneral=pathgeneral+"/"+pathNew[i];
+            fs.mkdirSync(pathgeneral);
+            console.log(pathgeneral, ' created.');
+        }else{
+          pathgeneral=pathgeneral+"/"+pathNew[i];
+        }
+    }
+    //instancio la conexion con el servicio a azure para descargar el blob al directorio seleccionado
+          blobService.getBlobToLocalFile(
+            containerName,
+            blobDownoload.name,
+            destinationDirectoryPath + '/' + blobDownoload.name,
+            function(error2) {
+              blobsDownloaded=1;      
+              if (error2) {
+                console.log(error2);
+              } else {
+                console.log(' Blob ' + blobDownoload.name + ' download finished.');
+                  callback;
+                
+              }
+            }
+          );  
+}
+
+
+
 
 
 function downloadBlobs(containerName, destinationDirectoryPath, callback) {
@@ -239,8 +311,8 @@ async function veryBlob() {
   });
 }
 
-// main().then(data=>{
-//   console.log("Done...");
-// })
+main().then(data=>{
+  console.log("Done...");
+})
 
 module.exports = {pushfile, searchFiles};

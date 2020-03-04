@@ -37,8 +37,11 @@ const callChecksStudies = (pathPaciente, paciente) => {
     Promise.all(checkList).then(values => {
       //console.log(values);
       //console.log("aqui subo a base de datos");
+      //update json con los clasificadores
+
       push_DB_datos(pathPaciente);
       uploadToDBToTest(pathPaciente);
+
     }).catch(err =>{
       console.log(err);
     });
@@ -165,7 +168,7 @@ const checkEstudies = (pathPaciente, paciente) => {
                 //leo el archivo correspondiente al estudio a clasificar
                 return readFilee(pathPaciente.dir + "/Estudio_MCI.csv");
               } else {
-                console.log("Archivo Estudio Mild Coginitive Imporment no encontraod");
+                console.log("Archivo Estudio Mild Coginitive Imporment no encontrado");
               }
               //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
             }).then((data) => {

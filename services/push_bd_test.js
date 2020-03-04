@@ -96,7 +96,7 @@ function searchFiles(path) {
       }
       Promise.all(promesasArraya).then(values => {
         generatePdf(path);
-        debugger;
+        //debugger;
         console.log("a"+values);
         console.log("aqui generar psf");
         //push_DB_datos(pathPaciente);
