@@ -11,7 +11,6 @@ const runCommand = command => {
     try {
       //creo un comando sh
       const process = spawn('bash');
-
       //creo un objeto para guardar la respuesta
       const response = {};
       //ejecutar el comando
@@ -22,6 +21,7 @@ const runCommand = command => {
       });
       //ejectuto el comando enviado en consola y guardo cuando haya terminado el proceso
       process.on('close', code => {
+        debugger;
         response.code = code;
         resolve(response);
       });
@@ -32,7 +32,7 @@ const runCommand = command => {
       //console.log(err);
     }
   }).catch(err =>{
-    //console.log(err);
+    //console.log(err.toString());
   });;
 };
 

@@ -49,7 +49,8 @@ function searchFilesOscann(path) {
                 })
                 //console.log(dataJson,path, folderPadre);
                 //esta linea cuando se cumpla la promesa 
-                searchFiles(path, JSON.parse(jsonData).Hospital, folderPadre);
+                searchFiles(path, JSON.parse(jsonData), folderPadre);
+                
               });
             }
           }).catch(err => {

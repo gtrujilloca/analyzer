@@ -1,4 +1,5 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
+const  searchFilesRunOctave  = require('./runoctave');
 const fs = require('fs');
 const azure = require('azure-storage');
 const extname = require('path');
@@ -7,9 +8,7 @@ const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
 const fileService = azure.createFileService();
 //funciones system file para manejo de archivos
-//libreria de path
-const { readFilee, createFile, deleteFile } = require('./fs');
-const  searchFilesRunOctave  = require('../services/runoctave');
+
 
 //const fileService = azure.createFileService();
 //conexion con azure
@@ -57,26 +56,32 @@ async function searchJsonBlob() {
 }
 
 async function downloadBlobForPath(blobFile) {
-  var pathLevels = blobFile.name.split('/');
-  var filesDownloaded = 0;
-  // List the blob(s) in the container.
-  for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
-    var pathLevelsBlob = blob.name.split('/');
-    //verifico los blobs correspondientes al grupo del json encontrado
-    if (
-      pathLevelsBlob[0] === pathLevels[0] &&
-      pathLevelsBlob[1] === pathLevels[1]
-    ) {
-      filesDownloaded++;
-      const response = await downloadBlob(blob);
-      if (!response) {
-        console.log('download blob error');
+  try {
+    var pathLevels = blobFile.name.split('/');
+    var filesDownloaded = 0;
+    // List the blob(s) in the container.
+    for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
+      var pathLevelsBlob = blob.name.split('/');
+      //verifico los blobs correspondientes al grupo del json encontrado
+      if (
+        pathLevelsBlob[0] === pathLevels[0] &&
+        pathLevelsBlob[1] === pathLevels[1] &&
+        pathLevelsBlob[2] === pathLevels[2]
+      ) {
+        filesDownloaded++;
+        const response = await downloadBlob(blob);
+        if (!response) {
+          console.log('download blob error');
+        }
+        //console.log('download blob success');
       }
-      //console.log('download blob success');
     }
+    console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
+    debugger;
+    searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
+  } catch (error) {
+    console.log(error);
   }
-  console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
-  searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name); 
 }
 
 async function downloadBlob(blobFile) {
@@ -133,7 +138,6 @@ function getBlob(blobFileName) {
  * Funcion muestra archivo que contiene una carpeta y explora sus hijos
  */
 function searchFiles(path, hospital, folderPadre) {
-  //console.log(folderPadre);
   //leo el directorio que quiero inspeccionar
   fs.readdir(path, (err, files) => {
     //verifico que la ruta sea correcta y que no haya ningun error
@@ -155,7 +159,7 @@ function searchFiles(path, hospital, folderPadre) {
         //console.log(string[string.length-1], folderPadre);
         if (string[string.length - 1] !== folderPadre) {
           pathazure =
-            hospital +
+          hospital.Hospital+"/patologia"+hospital.Label+
             '/' +
             string[string.length - 2] +
             '/' +
@@ -166,7 +170,7 @@ function searchFiles(path, hospital, folderPadre) {
           //console.log(pathazure);
         } else {
           pathazure =
-            hospital + '/' + string[string.length - 1] + '/' + files[i];
+          hospital.Hospital+"/patologia"+hospital.Label +"/" + string[string.length - 1] + '/' + files[i];
           pathFile = path + '/' + files[i];
           //console.log(pathazure);
         }
@@ -318,4 +322,4 @@ async function veryBlob() {
 
 
 
-module.exports = { pushfile, searchJsonBlob };
+module.exports = { pushfile, searchJsonBlob, searchFiles };

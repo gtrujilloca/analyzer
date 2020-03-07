@@ -35,7 +35,7 @@ function uploadToDBToTest(pathPaciente) {
 const callChecksStudies = (pathPaciente) => {
   searchFiles(pathPaciente.dir).then(checkList => {
     Promise.all(checkList).then(values => {
-      console.log("a");
+   
       console.log("aqui generar ");
       //push_DB_datos(pathPaciente);
       //uploadToDBToTest(pathPaciente);
@@ -95,7 +95,7 @@ function searchFiles(path) {
         }
       }
       Promise.all(promesasArraya).then(values => {
-        generatePdf(path);
+        //generatePdf(path);
         //debugger;
         console.log("a"+values);
         console.log("aqui generar psf");

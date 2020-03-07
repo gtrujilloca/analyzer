@@ -5,7 +5,7 @@ const { readFilee, createFile, deleteFile, checkFiles } = require('./fs');
 
 //clase para subir a base de datos mongo de datos
 const push_DB_datos = require("./push_bd_datos.js");
-//clase para subir a base de datos test
+// //clase para subir a base de datos test
 const uploadToDBToTest = require("./push_bd_test.js");
 
 //inicializo en null una consola
@@ -38,7 +38,8 @@ const callChecksStudies = (pathPaciente, paciente) => {
       //console.log(values);
       //console.log("aqui subo a base de datos");
       //update json con los clasificadores
-
+      console.log("termine clasificador");
+      console.log(pathPaciente);
       push_DB_datos(pathPaciente);
       uploadToDBToTest(pathPaciente);
 
