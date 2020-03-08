@@ -21,7 +21,6 @@ const runCommand = command => {
       });
       //ejectuto el comando enviado en consola y guardo cuando haya terminado el proceso
       process.on('close', code => {
-        debugger;
         response.code = code;
         resolve(response);
       });

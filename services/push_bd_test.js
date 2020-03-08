@@ -35,9 +35,7 @@ function uploadToDBToTest(pathPaciente) {
 const callChecksStudies = (pathPaciente) => {
   searchFiles(pathPaciente.dir).then(checkList => {
     Promise.all(checkList).then(values => {
-   
-      console.log("aqui generar ");
-      //push_DB_datos(pathPaciente);
+         //push_DB_datos(pathPaciente);
       //uploadToDBToTest(pathPaciente);
     }).catch(err =>{
       console.log(err);
@@ -90,20 +88,24 @@ function searchFiles(path) {
             //console.log("split "+path.split('/')[(path.split('/').length) - 1]);
             var command = "cd /home/andresagudelo/Documentos/QTproyects/qt_mongo_prueba; ./qt_mongo_prueba '" + path + "/" + calibracion + "' '" + path + "/" + fs.readdirSync(path)[i] + "' '" + path.split('/')[(path.split('/').length) - 1] + "' '" + fs.readdirSync(path)[i] + "'";
             // promesasArraya.push(runProcess(command));
-            promesasArraya.push(runProcess(command));
+            //console.log("comando up test",command);
+            runProcess(command).then(data=>{
+              
+              console.log(data)
+            });
           }
         }
       }
-      Promise.all(promesasArraya).then(values => {
-        //generatePdf(path);
-        //debugger;
-        console.log("a"+values);
-        console.log("aqui generar psf");
-        //push_DB_datos(pathPaciente);
-        //uploadToDBToTest(pathPaciente);
-      }).catch(err =>{
-          //console.log("error "+err);
-      }); 
+      // Promise.all(promesasArraya).then(values => {
+      //   //generatePdf(path);
+      //   //debugger;
+      //   console.log("a"+values);
+      //   console.log("aqui generar psf");
+      //   //push_DB_datos(pathPaciente);
+      //   //uploadToDBToTest(pathPaciente);
+      // }).catch(err =>{
+      //     //console.log("error "+err);
+      // }); 
      
     })
   //})

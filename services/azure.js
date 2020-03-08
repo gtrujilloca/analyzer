@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const  searchFilesRunOctave  = require('./runoctave');
 const fs = require('fs');
@@ -7,6 +8,8 @@ const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
 const fileService = azure.createFileService();
+const updateJson = require('./jsonEditFile');
+
 //funciones system file para manejo de archivos
 
 
@@ -78,6 +81,7 @@ async function downloadBlobForPath(blobFile) {
     }
     console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
     debugger;
+    updateJson( ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 2);
     searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
   } catch (error) {
     console.log(error);
@@ -134,52 +138,85 @@ function getBlob(blobFileName) {
   });
 }
 
+function getListFile(dir, done) {
+  var results = [];
+  fs.readdir(dir, function (err, list) {
+    if (err) return done(err);
+    var i = 0;
+    (function next() {
+      var file = list[i++];
+      if (!file) return done(null, results);
+      file = dir + '/' + file;
+      fs.stat(file, function (err2, stat) {
+        if (stat && stat.isDirectory()) {
+          getListFile(file, function (err3, res) {
+            results = results.concat(res);
+            next();
+          });
+        } else {
+          results.push(file);
+          next();
+        }
+      });
+    })();
+  });
+};
+
+
+
+
 /**
  * Funcion muestra archivo que contiene una carpeta y explora sus hijos
  */
-function searchFiles(path, hospital, folderPadre) {
-  //leo el directorio que quiero inspeccionar
-  fs.readdir(path, (err, files) => {
-    //verifico que la ruta sea correcta y que no haya ningun error
-    if (err) {
-      return console.log(err);
-    }
-    //si no hay ningun problema realizo
-    for (let i = 0; i < files.length; i++) {
-      //concateno la carpeta contenedora con la carpera nueva a leer
-      var stats = fs.statSync(path + '/' + files[i]);
-      //verifico que el archivo sea una carpeta
-      if (stats.isDirectory()) {
-        //console.log(extname.dirname(path+"/"+ files[i]));
-        //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
-        searchFiles(path + '/' + files[i], hospital, folderPadre);
-      } else {
-        //si no es un archivo por lo tanto no lo abro y verifico que en la carpeta haya un Json para realizar la operacion
-        var string = path.split('/');
-        //console.log(string[string.length-1], folderPadre);
-        if (string[string.length - 1] !== folderPadre) {
-          pathazure =
-          hospital.Hospital+"/patologia"+hospital.Label+
-            '/' +
-            string[string.length - 2] +
-            '/' +
-            string[string.length - 1] +
-            '/' +
-            files[i];
-          pathFile = path + '/' + files[i];
-          //console.log(pathazure);
-        } else {
-          pathazure =
-          hospital.Hospital+"/patologia"+hospital.Label +"/" + string[string.length - 1] + '/' + files[i];
-          pathFile = path + '/' + files[i];
-          //console.log(pathazure);
+function searchFiles(path, informationTestPacient, targetFolder) {
+  return new Promise((resolve, reject) => {
+    try {
+      //leo el directorio que quiero inspeccionar
+      fs.readdir(path, (err, files) => {
+        //verifico que la ruta sea correcta y que no haya ningun error
+        if (err) {
+          return console.log(err);
         }
-        pushfile('entrada', { blobName: pathazure, pathFile: pathFile }).then(
-          data => {
-            //console.log(data);
+        console.log(chalk.red('FILES', files.length, path));
+        //si no hay ningun problema realizo
+        files.forEach(async (file, index) => {
+          //concateno la carpeta contenedora con la carpera nueva a leer
+          const pathFile = `${path}/${file}`;
+          const stats = fs.statSync(pathFile);
+          //verifico que el archivo sea una carpeta
+          if (stats.isDirectory()) {
+            //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
+            const uploaded = await searchFiles(pathFile, informationTestPacient, targetFolder);
+            if (!uploaded) {
+              console.log(chalk.red('ERROR UPLOAD FILES'));
+              return;
+            }
+            console.log(chalk.green('UPLOAD', pathFile));
+          } else {
+            //si no es un archivo por lo tanto no lo abro y verifico que en la carpeta haya un Json para realizar la operacion
+            const listFolders = path.split('/');
+            if (listFolders[listFolders.length - 1] !== targetFolder) {
+              pathazure = `${informationTestPacient.Hospital}/patologia${informationTestPacient.Label}/${listFolders[listFolders.length - 2]}/${listFolders[listFolders.length - 1]}/${file}`;
+            } else {
+              pathazure =
+              informationTestPacient.Hospital+"/patologia"+informationTestPacient.Label +"/" + listFolders[listFolders.length - 1] + '/' + file;
+            }
+            Promise.all([pushfile('entrada', { blobName: pathazure, pathFile: pathFile }), pushfile('entradabackup', { blobName: pathazure, pathFile: pathFile })])
+              .then(data => {
+                if (index === files.length - 1) {
+                  console.log(chalk.blue('Termine folder', file))
+                  resolve(true);
+                }
+              }).catch(err => {
+                console.log(chalk.red('ERROR', err));
+                reject(false);
+              });
           }
-        );
-      }
+        });
+      });
+    } catch (error) {
+      console.log(chalk.red('ERROR', err));
+      reject(false);
     }
   });
 }
@@ -201,6 +238,7 @@ function pushfile(containerName, file) {
         }
       );
     } catch (error) {
+      //console.log(error);
       reject(error);
     }
   });
@@ -322,4 +360,4 @@ async function veryBlob() {
 
 
 
-module.exports = { pushfile, searchJsonBlob, searchFiles };
+module.exports = { pushfile, searchJsonBlob, searchFiles, getListFile};

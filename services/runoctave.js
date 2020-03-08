@@ -69,7 +69,6 @@ function searchFilesRunOctave(path) {
 
 function searchFilesRunOctaveOld(path) {
   console.log('searchFilesRunOctaveOld');
-    //console.log(path);
           //asigno objeto de dir, name y ext a una var
           const pathPaciente = extname.parse(path);
           //console.log(pathPaciente.dir);

@@ -35,11 +35,7 @@ const callChecksStudies = (pathPaciente, paciente) => {
   checkEstudies(pathPaciente, paciente).then(checkList => {
     //console.log("Estudios Clasificados completos");
     Promise.all(checkList).then(values => {
-      //console.log(values);
-      //console.log("aqui subo a base de datos");
-      //update json con los clasificadores
       console.log("termine clasificador");
-      console.log(pathPaciente);
       push_DB_datos(pathPaciente);
       uploadToDBToTest(pathPaciente);
 
