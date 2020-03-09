@@ -7,7 +7,6 @@ const extname = require('path');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
-const fileService = azure.createFileService();
 const updateJson = require('./jsonEditFile');
 
 //funciones system file para manejo de archivos
@@ -19,6 +18,7 @@ const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 const urlAzure =
   'https://externalstorageaccount.blob.core.windows.net/entrada/';
+const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
 const ROUTER_DOWNLOAD_BLOB =
@@ -163,64 +163,6 @@ function getListFile(dir, done) {
 };
 
 
-
-
-/**
- * Funcion muestra archivo que contiene una carpeta y explora sus hijos
- */
-function searchFiles(path, informationTestPacient, targetFolder) {
-  return new Promise((resolve, reject) => {
-    try {
-      //leo el directorio que quiero inspeccionar
-      fs.readdir(path, (err, files) => {
-        //verifico que la ruta sea correcta y que no haya ningun error
-        if (err) {
-          return console.log(err);
-        }
-        console.log(chalk.red('FILES', files.length, path));
-        //si no hay ningun problema realizo
-        files.forEach(async (file, index) => {
-          //concateno la carpeta contenedora con la carpera nueva a leer
-          const pathFile = `${path}/${file}`;
-          const stats = fs.statSync(pathFile);
-          //verifico que el archivo sea una carpeta
-          if (stats.isDirectory()) {
-            //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
-            const uploaded = await searchFiles(pathFile, informationTestPacient, targetFolder);
-            if (!uploaded) {
-              console.log(chalk.red('ERROR UPLOAD FILES'));
-              return;
-            }
-            console.log(chalk.green('UPLOAD', pathFile));
-          } else {
-            //si no es un archivo por lo tanto no lo abro y verifico que en la carpeta haya un Json para realizar la operacion
-            const listFolders = path.split('/');
-            if (listFolders[listFolders.length - 1] !== targetFolder) {
-              pathazure = `${informationTestPacient.Hospital}/patologia${informationTestPacient.Label}/${listFolders[listFolders.length - 2]}/${listFolders[listFolders.length - 1]}/${file}`;
-            } else {
-              pathazure =
-              informationTestPacient.Hospital+"/patologia"+informationTestPacient.Label +"/" + listFolders[listFolders.length - 1] + '/' + file;
-            }
-            Promise.all([pushfile('entrada', { blobName: pathazure, pathFile: pathFile }), pushfile('entradabackup', { blobName: pathazure, pathFile: pathFile })])
-              .then(data => {
-                if (index === files.length - 1) {
-                  console.log(chalk.blue('Termine folder', file))
-                  resolve(true);
-                }
-              }).catch(err => {
-                console.log(chalk.red('ERROR', err));
-                reject(false);
-              });
-          }
-        });
-      });
-    } catch (error) {
-      console.log(chalk.red('ERROR', err));
-      reject(false);
-    }
-  });
-}
-
 //funcion para subir archivo a azure recibe el nombre del container donde se va a almacenar y los datos del archivo
 function pushfile(containerName, file) {
   return new Promise((resolve, reject) => {
@@ -316,26 +258,82 @@ function downloadBlobs(containerName, destinationDirectoryPath, callback) {
   });
 }
 
-async function veryContainer() {
-  var containerName = 'entragda';
-  blobService.createContainerIfNotExists(containerName, function(
-    err,
-    result,
-    response
-  ) {
-    if (err) {
-      console.log("Couldn't create container %s", containerName);
-      console.error(err);
-    } else {
-      if (result) {
-        console.log('Container %s created', containerName);
-      } else {
-        console.log('Container %s already exists', containerName);
-      }
-
-      // Your code goes here
+async function veryContainer(containerName) {
+  return new Promise((resolve, reject)=>{
+    try {
+      blobService.createContainerIfNotExists(containerName, function(
+         err,
+         result,
+         response
+       ) {
+         if (err) {
+           console.log("Couldn't create container %s", containerName);
+           reject(err);
+           console.error(err);
+         } else {
+            resolve(result);
+           }
+           // Your code goes here
+         }
+      )
+    } catch (error) {
+      reject(error);
     }
   });
+}
+
+function deleteContainer (container, callback) {
+  // Delete the container.
+  blobService.deleteContainerIfExists(container, function (error) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Deleted the container ' + container);
+      callback();
+    }
+  });
+}
+
+async function deletedBlobForPath(blobFile) {
+  try {
+    var pathLevels = blobFile.name.split('/');
+    var filesDeleted = 0;
+    // List the blob(s) in the container.
+    for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
+      var pathLevelsBlob = blob.name.split('/');
+      //verifico los blobs correspondientes al grupo del json encontrado
+      if (
+        pathLevelsBlob[0] === pathLevels[0] &&
+        pathLevelsBlob[1] === pathLevels[1] &&
+        pathLevelsBlob[2] === pathLevels[2]
+      ) {
+        filesDeleted++;
+        const response = await deleteBlob(CONTAINER_NAME_ENTRADA, blob.name);
+        if (!response) {
+          console.log('download blob error');
+        }
+        //console.log('download blob success');
+      }
+    }
+    console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);     
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function deleteBlob(container, blob){
+  return new Promise((resolve, reject)=>{
+    try {
+      blobService.deleteBlobIfExists(container, blob, (err, result) => {
+         if(err) {
+            console.log(err);
+         }
+         resolve(result);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  })
 }
 
 async function veryBlob() {
@@ -360,4 +358,4 @@ async function veryBlob() {
 
 
 
-module.exports = { pushfile, searchJsonBlob, searchFiles, getListFile};
+module.exports = { pushfile, searchJsonBlob, getListFile, veryContainer};

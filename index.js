@@ -17,9 +17,13 @@ const path = '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas'
 //const path = '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso/HUCV/patologiaPacienteBueno/Paciente_bueno/pacienteBueno.json';
 const {searchJsonBlob} = require('./services/azure');
 const generatePdf = require('./services/generatePdf');
+const { copyFiles, deleteFolder, log} = require('./services/fs');
 
 
-searchFilesOscann(path);
+
+//searchFilesOscann(path);
+log("/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas/Hospital1/ControlesGrupoA/paciente_grupoA_20/logpaciente20.txt", "prueba1");
+
 //searchFilesRunOctave(path);
 //const pathPaciente = extname.parse(path);
 //runOctave(path);

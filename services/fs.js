@@ -1,5 +1,10 @@
 //libreria de file system
 const fs = require('fs');
+const fse = require('fs-extra');
+
+
+const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP || "entradabackup";
+const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
 
 //recibe un objeto con data del paciente y el comando que se va a gardar
 const createFile = data => {
@@ -28,21 +33,44 @@ const createFile = data => {
 };
 
 //funcion borrar archivo recibo un objeto data con el path de el archivo a leiminar y el nombre del archivo
-const deleteFile = data => {
+const deleteFile = pathDelete => {
   return new Promise((resolve, reject) => {
     try {
       //le damos la ruta y nombre del archivo a eliminar
-      fs.unlink(data.path + '/' + data.nameFile + data.extension, function(
+      fs.unlink(pathDelete, function(
         err
       ) {
         //si hay un error
         if (err) reject(err);
         //sino muestro el resultado
-        resolve(data.nameFile);
+        resolve(pathDelete);
       });
     } catch (error) {
       //capturo un erro si hubo en la lectura
       reject(error);
+      //console.log(error);
+    }
+  }).catch(err => {
+    //console.log(err);
+  });
+};
+
+//funcion borrar archivo recibo un objeto data con el path de el archivo a leiminar y el nombre del archivo
+const deleteFolder = pathDelete => {
+  return new Promise((resolve, reject) => {
+    try {
+      //le damos la ruta y nombre del archivo a eliminar
+      fse.remove(pathDelete, function(
+        err
+      ) {
+        //si hay un error
+        if (err) reject(false);
+        //sino muestro el resultado
+        resolve(true);
+      });
+    } catch (error) {
+      //capturo un erro si hubo en la lectura
+      reject(false);
       //console.log(error);
     }
   }).catch(err => {
@@ -100,9 +128,66 @@ const checkFiles = (path, className) => {
   });
 };
 
+
+// Async/Await:
+async function copyFiles(file) {
+  return new Promise((resolve, reject)=>{  
+    try {
+     // console.log(file);
+     const routeFileNew = file.split(ROUTER_ENTRY_FILE+"/")[1];
+     const listFolderName = routeFileNew.split("/");
+      const routeFilesNew = ROUTER_ENTRY_FILE_BACKUP+"/"+routeFileNew;
+      let newPath = ROUTER_ENTRY_FILE_BACKUP;
+      listFolderName.forEach(element => {
+        if (!fs.existsSync(newPath)) {
+          console.log(
+            newPath+
+              ' does not exist. Attempting to create this directory...'
+          );
+          fs.mkdirSync(newPath);
+          console.log(newPath + ' created.');
+        }
+        newPath = newPath+"/"+element;
+        if (!fs.existsSync(newPath)) {
+          console.log(
+            newPath +
+              ' does not exist. Attempting to create this directory...'
+          );
+          fs.mkdirSync(newPath);
+          console.log(newPath + ' created.');
+        }
+      });
+      fse.copy(file, routeFilesNew).then(res=>{
+        resolve({res:true, routeNew:routeFilesNew});
+      }).catch(err=>{
+        reject({res:false, error:err});
+      });
+  
+    //veriicar si la carpeta contenedora existe si no la creo
+    } catch (err) {
+      console.error(err)
+      reject({res:false, error:err});
+    }
+  })
+}
+
+
+
+function log(pathFile, text){
+  var logger = fs.createWriteStream(pathFile, {
+    flags: 'a' // 'a' means appending (old data will be preserved)
+  })
+  
+  logger.write(text+'\n') // append string to your file
+}
+
+
 module.exports = {
   createFile,
   deleteFile,
+  deleteFolder,
   readFilee,
-  checkFiles
+  checkFiles,
+  copyFiles, 
+  log
 };
