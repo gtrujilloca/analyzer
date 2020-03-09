@@ -71,16 +71,20 @@ async function downloadBlobForPath(blobFile) {
         pathLevelsBlob[1] === pathLevels[1] &&
         pathLevelsBlob[2] === pathLevels[2]
       ) {
+        if(extname.extname(blob.name)!=='.avi'){
         filesDownloaded++;
         const response = await downloadBlob(blob);
         if (!response) {
           console.log('download blob error');
         }
+      }
         //console.log('download blob success');
       }
     }
     console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
     debugger;
+    
+    deletedBlobForPath(CONTAINER_NAME_ENTRADA, blobFile)
     updateJson( ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 2);
     searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
   } catch (error) {
@@ -310,12 +314,12 @@ async function deletedBlobForPath(blobFile) {
         filesDeleted++;
         const response = await deleteBlob(CONTAINER_NAME_ENTRADA, blob.name);
         if (!response) {
-          console.log('download blob error');
+          console.log('deleted blob error');
         }
         //console.log('download blob success');
       }
     }
-    console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);     
+    console.log('Deleted Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);     
   } catch (error) {
     console.log(error);
   }
@@ -336,19 +340,24 @@ async function deleteBlob(container, blob){
   })
 }
 
-async function veryBlob() {
-  var blobName = 'folder/';
-  blobService.getBlobProperties('entrada', blobName, function(
-    err,
-    properties,
-    status
-  ) {
-    if (status.isSuccessful) {
-      console.log('existe');
-    } else {
-      console.log('no existe');
+function veryBlob(nameContainer,blobName) {
+  return new Promise((resolve, reject)=>{
+    try {
+      blobService.getBlobProperties(nameContainer, blobName, function(
+       err,
+       properties,
+       status
+     ) {
+       if (status.isSuccessful) {
+         resolve(true);
+       } else {
+         resolve(false);
+       }
+     });
+    } catch (error) {
+      reject(error);
     }
-  });
+  })
 }
 
 /* (async function main() {
@@ -358,4 +367,4 @@ async function veryBlob() {
 
 
 
-module.exports = { pushfile, searchJsonBlob, getListFile, veryContainer};
+module.exports = { pushfile, searchJsonBlob, getListFile, veryContainer, veryBlob, deleteBlob};

@@ -4,13 +4,13 @@ const fs = require("fs");
 //libreria de path
 const extname = require("path");
 // Vamos a requerir del modulo que provee Node.js 
-const { pushfile, getListFile, veryContainer } = require("./azure");
+const { pushfile, getListFile, veryContainer, veryBlob, deleteBlob} = require("./azure");
 //const { searchFiles } = require("./azure");
 //clase para correr funciines de comando bash
 const starProcess = require("./runProcess");
 //funciones system file para manejo de archivos
 const jsonEditFile = require('./jsonEditFile');
-const { readFilee, createFile, deleteFolder, copyFiles } = require('./fs');
+const { readFilee, createFile, deleteFolder, copyFiles} = require('./fs');
 let runProcess = null;
 
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA || "entrada";
@@ -53,10 +53,10 @@ function searchFilesOscann(path) {
                   const indexJson = filesList.indexOf(path + "/" + files[i]);
                   if (indexJson !== -1) {
                     const fileJson = filesList.splice(indexJson, 1);
-                    const response = await pushFilesAzure(filesList);
+                    const response = await pushFilesAzure(filesList, JSON.parse(jsonData));
                     console.log("response push files", response);
                     const datajson = await jsonEditFile(path + "/" + files[i], 1)
-                    const res = await pushFilesAzure(fileJson);
+                    const res = await pushFilesAzure(fileJson, JSON.parse(jsonData));
                     console.log("res json" + res);
                     console.log("temine Subir a azure");
                     const datajson2 = await jsonEditFile(path + "/" + files[i], -1)
@@ -95,20 +95,27 @@ function searchFilesOscann(path) {
   })
 }
 
-function pushFilesAzure(files) {
+function pushFilesAzure(files,jsonPaciente) {
   let i = 0;
   return new Promise((resolve, reject) => {
     try {
       console.log(files.length);
       files.forEach(async (file) => {
         const blobName = file.split(ROUTER_ENTRY_FILE + "/")[1];
-        await pushfile(CONTAINER_NAME_ENTRADA, { pathFile: file, blobName: blobName });
-        //await pushfile(CONTAINER_NAME_ENTRADABACKUP, {pathFile:file, blobName:blobName});
-        console.log(i, files.length);
-        i++;
-        if (i === files.length) {
-          resolve(true);
-        }
+        const existBlob = await veryBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName)
+        console.log(existBlob);
+          if(existBlob){
+              await deleteBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName);
+          }    
+          await pushfile(CONTAINER_NAME_ENTRADA, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName });
+          //await pushfile(CONTAINER_NAME_ENTRADABACKUP, {pathFile:file, blobName:blobName});
+          console.log(i, files.length);
+          i++;
+          if (i === files.length) {
+            resolve(true);
+          }
+        
+        
       });
     } catch (error) {
       i++;

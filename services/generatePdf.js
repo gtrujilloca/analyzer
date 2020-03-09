@@ -25,7 +25,7 @@ function generatePdf(pathPaciente) {
     return grupoPaciente(jsonpaciente.Age)
       }).then(clasificacionEdad =>{
         console.log(clasificacionEdad);
-        var command = "cd /home/andresagudelo/Documentos/QTproyects/qt_pdf_prueba; ./qt_pdf_prueba '"+ruta[(ruta.length-2)]+"' '"+ruta[(ruta.length-1)]+"' '"+clasificacionEdad+"'";      
+        var command = "cd /home/andresagudelo/Documentos/QTproyects/qt_pdf_prueba; ./qt_pdf_prueba '"+ruta[(ruta.length-2)]+"' '"+ruta[(ruta.length-1)]+"' '"+pathPaciente.dir+"'";      
         console.log(command);
     return runProcess(command);
     }).then(data =>{

@@ -33,7 +33,7 @@ function searchFiles(path, informationTestPacient, targetFolder) {
           //verifico que el archivo sea una carpeta
           if (stats.isDirectory()) {
             //si es una carpeta llamo a metodo recursivo y inspecciono la carpeta seleccionada
-            const uploadesawait searchFiles(pathFile, informationTestPacient, targetFolder).then((uploaded => {
+            const uploades = await searchFiles(pathFile, informationTestPacient, targetFolder).then((uploaded => {
               if (!uploaded) {
                 console.log(chalk.red('ERROR UPLOAD FILES'));
                 return;

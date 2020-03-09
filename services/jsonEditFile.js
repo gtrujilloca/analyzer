@@ -7,7 +7,6 @@ const updateJsonFile = require('update-json-file')
 const updateJson = (path, dataNew)=>{
     return new Promise((resolve, reject) =>{
         try {
-
             fs.readFile(path, (err, dataOld) => {
                 if (err) throw err;
                 let pacienteJson = JSON.parse(dataOld);
