@@ -1,18 +1,12 @@
-var fs = require('fs');
+const fs = require('fs');
 //invoco servicio para subir a Base de datos
+// llamado child_process
 const starProcess = require("./runProcess");
 //llamo clases para manejo de archivos
 
-//llamo fenerar pdf
-const generatePdf = require("./generatePdf");
-const { readFilee, createFile, deleteFile } = require('./fs');
-// llamado child_process
-//libreria de path
-const extname = require("path");
 
 //inicializo en null una consola
 let runProcess = null;
-
 
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
@@ -22,35 +16,13 @@ if (!runProcess) {
 
 
 function uploadToDBToTest(pathPaciente) {
-  //generateDocument()
-  //console.log(pathPaciente.name);
-  //console.log(path.substring(1,-1));
-
-  //console.log(fs.readdirSync(path)[0]);
-  //callChecksStudies(pathPaciente);
-  searchFiles(pathPaciente.dir);
+  searchFilesTest(pathPaciente.dir);
 
 }
-
-const callChecksStudies = (pathPaciente) => {
-  searchFiles(pathPaciente.dir).then(checkList => {
-    Promise.all(checkList).then(values => {
-         //push_DB_datos(pathPaciente);
-      //uploadToDBToTest(pathPaciente);
-    }).catch(err =>{
-      console.log(err);
-    });
-  }).catch(err =>{
-    console.log(err);
-  });
-}
-
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
-function searchFiles(path) {
+function searchFilesTest(path) {
   // return new Promise((resolve, reject) => {
-  //   //array de promoesas
-   promesasArraya = [];
 
     //leo el directorio que quiero inspeccionar 
     fs.readdir(path, (err, files) => {
@@ -109,15 +81,6 @@ function searchFiles(path) {
      
     })
   //})
-}
-
-
-const verifyPromises = (checks, pathologies, promesasArray, resolve) => {
-  //console.log(checks,pathologies)
-  if (checks === pathologies) {
-    console.log(promesasArray);
-    resolve(promesasArray);
-  }
 }
 
 

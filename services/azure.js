@@ -1,6 +1,11 @@
-const chalk = require('chalk');
+// const chalk = require('chalk');
 const { BlobServiceClient } = require('@azure/storage-blob');
-const  searchFilesRunOctave  = require('./runoctave');
+
+
+//const  searchFilesRunOctave  = require('./runoctave');
+
+
+
 const fs = require('fs');
 const azure = require('azure-storage');
 const extname = require('path');
@@ -12,7 +17,7 @@ const {updateJson} = require('./jsonEditFile');
 //funciones system file para manejo de archivos
 
 
-//const fileService = azure.createFileService();
+const fileService = azure.createFileService();
 //conexion con azure
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -43,6 +48,7 @@ async function initServiceClient() {
 async function searchJsonBlob() {
   console.log('\nListing blobs...');
   // List the blob(s) in the container.
+
   await initServiceClient();
   for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
     if (extname.extname(blob.name) === '.json') {
@@ -55,41 +61,41 @@ async function searchJsonBlob() {
       }
     }
   }
-  console.log('terminar');
 }
 
 async function downloadBlobForPath(blobFile) {
-  try {
-    var pathLevels = blobFile.name.split('/');
-    var filesDownloaded = 0;
-    // List the blob(s) in the container.
-    for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
-      var pathLevelsBlob = blob.name.split('/');
-      //verifico los blobs correspondientes al grupo del json encontrado
-      if (
-        pathLevelsBlob[0] === pathLevels[0] &&
-        pathLevelsBlob[1] === pathLevels[1] &&
-        pathLevelsBlob[2] === pathLevels[2]
-      ) {
-        if(extname.extname(blob.name)!=='.avi'){
-        filesDownloaded++;
-        const response = await downloadBlob(blob);
-        if (!response) {
-          console.log('download blob error');
+    try {
+      var pathLevels = blobFile.name.split('/');
+      var filesDownloaded = 0;
+      // List the blob(s) in the container.
+      for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
+        var pathLevelsBlob = blob.name.split('/');
+        //verifico los blobs correspondientes al grupo del json encontrado
+        if (
+          pathLevelsBlob[0] === pathLevels[0] &&
+          pathLevelsBlob[1] === pathLevels[1] &&
+          pathLevelsBlob[2] === pathLevels[2]
+        ) {
+          if(extname.extname(blob.name)!=='.avi'){
+          filesDownloaded++;
+          const response = await downloadBlob(blob);
+          if (!response) {
+            console.log('download blob error');
+          }
+        }
+          //console.log('download blob success');
         }
       }
-        //console.log('download blob success');
-      }
+      console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
+      debugger;
+      console.log(blobFile);
+      //deletedBlobForPath(CONTAINER_NAME_ENTRADA, blobFile)
+      updateJson( ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 2);
+      //searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
+    } catch (error) {
+      console.log(error);
     }
-    console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
-    debugger;
-    console.log(blobFile);
-    //deletedBlobForPath(CONTAINER_NAME_ENTRADA, blobFile)
-    updateJson( ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 2);
-    searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
-  } catch (error) {
-    console.log(error);
-  }
+
 }
 
 async function downloadBlob(blobFile) {
@@ -110,7 +116,6 @@ async function downloadBlob(blobFile) {
       if (!fs.existsSync(pathgeneral + '/' + pathNew[i])) {
         pathgeneral = pathgeneral + '/' + pathNew[i];
         fs.mkdirSync(pathgeneral);
-        console.log(pathgeneral, ' created.');
       } else {
         pathgeneral = pathgeneral + '/' + pathNew[i];
       }
@@ -143,6 +148,7 @@ function getBlob(blobFileName) {
 }
 
 function getListFile(dir, done) {
+  console.log("get List")
   var results = [];
   fs.readdir(dir, function (err, list) {
     if (err) return done(err);

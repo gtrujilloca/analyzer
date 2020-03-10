@@ -3,9 +3,12 @@ const fs = require('fs');
 const fse = require('fs-extra');
 
 
-const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP || "entradabackup";
+const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP;
 const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
 
+
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
+const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP;
 //recibe un objeto con data del paciente y el comando que se va a gardar
 const createFile = data => {
   return new Promise((resolve, reject) => {
@@ -48,10 +51,10 @@ const deleteFile = pathDelete => {
     } catch (error) {
       //capturo un erro si hubo en la lectura
       reject(error);
-      //console.log(error);
+      console.log(error);
     }
   }).catch(err => {
-    //console.log(err);
+    console.log(err);
   });
 };
 
@@ -171,6 +174,48 @@ async function copyFiles(file) {
   })
 }
 
+// Async/Await:
+async function copyFilesFinalizados(file) {
+  return new Promise((resolve, reject)=>{  
+    try {
+     console.log(file);
+     const routeFileNew = file.split(ROUTER_DOWNLOAD_BLOB+"/")[1];
+     const listFolderName = routeFileNew.split("/");
+      const routeFilesNew = ROUTER_DOWNLOAD_BLOB_BACKUP+"/"+routeFileNew;
+      let newPath = ROUTER_DOWNLOAD_BLOB_BACKUP;
+      listFolderName.forEach(element => {
+        if (!fs.existsSync(newPath)) {
+          console.log(
+            newPath+
+              ' does not exist. Attempting to create this directory...'
+          );
+          fs.mkdirSync(newPath);
+          console.log(newPath + ' created.');
+        }
+        newPath = newPath+"/"+element;
+        if (!fs.existsSync(newPath)) {
+          console.log(
+            newPath +
+              ' does not exist. Attempting to create this directory...'
+          );
+          fs.mkdirSync(newPath);
+          console.log(newPath + ' created.');
+        }
+      });
+      fse.copy(file, routeFilesNew).then(res=>{
+        resolve({res:true, routeNew:routeFilesNew});
+      }).catch(err=>{
+        reject({res:false, error:err});
+      });
+  
+    //veriicar si la carpeta contenedora existe si no la creo
+    } catch (err) {
+      console.error(err)
+      reject({res:false, error:err});
+    }
+  })
+}
+
 
 
 function log(pathFile, text){
@@ -184,10 +229,11 @@ function log(pathFile, text){
 
 module.exports = {
   createFile,
-  deleteFile,
-  deleteFolder,
-  readFilee,
-  checkFiles,
-  copyFiles, 
+    deleteFile,
+    deleteFolder,
+    readFilee,
+    checkFiles,
+    copyFiles,
+    copyFilesFinalizados,
   log
 };

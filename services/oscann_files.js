@@ -4,7 +4,7 @@ const fs = require("fs");
 //libreria de path
 const extname = require("path");
 // Vamos a requerir del modulo que provee Node.js 
-const { pushfile, getListFile, veryContainer, veryBlob, deleteBlob} = require("./azure");
+const { pushfile, getListFile, veryBlob, deleteBlob} = require("./azure");
 //const { searchFiles } = require("./azure");
 //clase para correr funciines de comando bash
 const starProcess = require("./runProcess");
@@ -15,8 +15,8 @@ let runProcess = null;
 
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA || "entrada";
 const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
-
 const CONTAINER_NAME_ENTRADABACKUP = process.env.CONTAINER_NAME_ENTRADABACKUP || "entradabackup";
+
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
   runProcess = starProcess();
@@ -95,9 +95,9 @@ function searchFilesOscann(path) {
 }
 
 function pushFilesAzure(files,jsonPaciente) {
-  let i = 0;
   return new Promise((resolve, reject) => {
     try {
+      let i = 0;
       console.log(files.length);
       files.forEach(async (file) => {
         const blobName = file.split(ROUTER_ENTRY_FILE + "/")[1];
