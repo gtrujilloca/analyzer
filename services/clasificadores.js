@@ -2,7 +2,7 @@
 const starProcess = require("./runProcess");
 //funciones para manejor de archivos file system
 const { readFilee, createFile, deleteFile, checkFiles } = require('./fs');
-
+const {updateJsonFiles} = require('./jsonEditFile');
 //clase para subir a base de datos mongo de datos
 const push_DB_datos = require("./push_bd_datos.js");
 // //clase para subir a base de datos test
@@ -21,7 +21,7 @@ if (!runProcess) {
 
 
 const clasificador = pathPaciente => {
-  //console.log(pathPaciente.dir + "/" + pathPaciente.base);
+  console.log("Inicie Clasificador");
   let jsonpaciente = null;
   readFilee(pathPaciente.dir + "/" + pathPaciente.base).then(data => {
     jsonpaciente = JSON.parse(data.toString());
@@ -32,19 +32,24 @@ const clasificador = pathPaciente => {
 }
 
 const callChecksStudies = (pathPaciente, paciente) => {
-  checkEstudies(pathPaciente, paciente).then(checkList => {
-    //console.log("Estudios Clasificados completos");
-    Promise.all(checkList).then(values => {
-      console.log("termine clasificador");
-      push_DB_datos(pathPaciente);
-      uploadToDBToTest(pathPaciente);
-
-    }).catch(err =>{
-      console.log(err);
+  console.log("ckeckEstudies", );
+  checkEstudies(pathPaciente, paciente).then(checkList=>{
+    console.log("Promise ALl");
+    Promise.all(checkList).then(values=>{
+      console.log("Estudios Clasificados completos");
+      upDateClasificadorJson(extname.parse(pathPaciente), paciente).then(res=>{
+        console.log(res);
+        updateJsonFiles(pathPaciente, res);
+        
+        console.log("termine clasificador");
+              push_DB_datos(pathPaciente);
+              uploadToDBToTest(pathPaciente);
+      });
     });
-  }).catch( err =>{
-    console.log(err);
-  })
+  });
+
+ 
+
 }
 
 const checkEstudies = (pathPaciente, paciente) => {
@@ -249,14 +254,197 @@ const checkEstudies = (pathPaciente, paciente) => {
       //console.log(addCheck, Pathologies_Studied.length);
 }
 
-const verifyPromises = (checks, pathologies, promesasArray, resolve) => {
+const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
   if (checks === pathologies) {
-    resolve(promesasArray);
+    resolve(dataResolve);
   }
 }
 
 
 
+const upDateClasificadorJson = (pathPaciente, paciente) => {
+  //if (jsonpaciente.Results_types)
+  //console.log("result types " + jsonpaciente.Results_types.AI);
+  //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
+  return new Promise( (resolve, reject) => {
+    try {
+      
+      //array de promoesas
+      promesasArray = [];
+      
+      //creo bandera para saber cuantas promesas se han resuelto
+      let addCheck = 0;
+      //ciclo para recorrer los estudios a clasificar
+      //paciente.Pathologies_Studied.forEach((pathology) => {
+        for (let pathology of paciente.Pathologies_Studied){
+        //dependiendo del caso del estudio realizo la clasificacion
+        switch (pathology) {
+          case 1:
+            //esta opcion es para estudios de ejemplo
+            console.log('Sin especificar ' + pathology);
+            addCheck += 1;
+            //llamo metodo de verificar la promesa si ya fue resuelra
+            
+            break;
+            
+          case 2:
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Class_AD.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Class_AD.csv");
+              } else {
+                console.log("Archivo Estudio AD no encontrado");
+                return -1;
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV
+              console.log(parseInt(data));
+              paciente.resultados_IA_demencias[0]=parseInt(data);
+              addCheck += 1;
+              verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
+              //guardo en la variable el comando a ejecutar por bash              //console.log("Alzheimer terminado");
+            }).catch(err =>{
+              console.log(err);
+            });
+            break;
+  
+          case 3:
+  
+            //console.log('Parkinson');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Class_PD.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Class_PD.csv");
+              } else {
+                console.log("Archivo Estudio Parkinson no encontrado");
+                return -1;
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              console.log(data);
+              paciente.resultados_IA_parkinson[0]=parseInt(data);
+              addCheck += 1;
+              verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
+              //console.log("Parkinson terminado");
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 5:
+  
+            //console.log('frontotemporal demental' );
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Class_FTD.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Class_FTD.csv");
+              } else {
+                console.log("Archivo Estudio frontotemporal demental no encontrado");
+                return -1;
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              paciente.resultados_IA_demencias[1]=parseInt(data);
+              addCheck += 1;
+              verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
+            }).catch(err =>{
+             // console.log(err);
+            });
+            break;
+  
+          case 9:
+  
+            //console.log('Mild Coginitive Imporment');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Class_MCI.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Class_MCI.csv");
+              } else {
+                console.log("Archivo Estudio Mild Coginitive Imporment no encontrado");
+                return -1;
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              paciente.resultados_IA_demencias[2]=parseInt(data);
+              addCheck += 1;
+              verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 8:
+  
+            //console.log('Encefalopatia Hipatica Minima');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Class_MHE.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Class_MHE.csv");
+              } else {
+                console.log("Archivo Estudio Encefalopatia Hipatica Minima no encontrado");
+                return -1;
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              paciente.resultados_IA_EHM=parseInt(data);
+              addCheck += 1;
+              verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+  
+          case 10:
+  
+            //console.log('parkinsonimos ');
+            //verifico si el archivo del estudio existe para porder realizar la clasificacion
+            checkFiles(pathPaciente, "Estudio_PKS.csv").then(res => {
+              //si existe leo el archivo
+              if (res === true) {
+                //leo el archivo correspondiente al estudio a clasificar
+                return readFilee(pathPaciente.dir + "/Estudio_PKS.csv");
+              } else {
+                console.log("Archivo Estudio parkinsonimos no encontrado");
+                return -1;
+              }
+              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
+            }).then((data) => {
+              //Leo el Estudio CSV 
+              paciente.resultados_IA_parkinson[1]=parseInt(data);
+              addCheck += 1;
+              verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
+            }).catch(err =>{
+              //console.log(err);
+            });
+            break;
+          default:
+            console.log('Sin especificar ' + pathology);
+        }
+      }
+      
+    } catch (error) {
+      reject(eror);
+    }
+  });
+      //console.log(addCheck, Pathologies_Studied.length);
+}
 
 
-module.exports = clasificador;
+
+
+module.exports = {clasificador, upDateClasificadorJson};

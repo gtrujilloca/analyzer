@@ -10,7 +10,6 @@ const updateJson = (path, dataNew)=>{
             fs.readFile(path, (err, dataOld) => {
                 if (err) throw err;
                 let pacienteJson = JSON.parse(dataOld);
-                console.log("old", pacienteJson.estado)
                 pacienteJson.estado = dataNew;
                 
                 let data = JSON.stringify(pacienteJson, null, 2);
@@ -27,5 +26,49 @@ const updateJson = (path, dataNew)=>{
     })
 }
 
+const updateJsonFiles = (path, dataNew)=>{
+    return new Promise((resolve, reject) =>{
+        try {
+            fs.readFile(path, (err, dataOld) => {
+                if (err) throw err;
+                let pacienteJson = JSON.parse(dataOld);
+                pacienteJson = dataNew;
+                
+                let data = JSON.stringify(pacienteJson, null, 2);
+            
+                fs.writeFile(path, data, (err) => {
+                    if (err) throw err;
+                    console.log('Data written to file');
+                    resolve(data);
+                });
+            });
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
 
-module.exports = updateJson;
+// const updateJsonResultados = (path, dataNew)=>{
+//     return new Promise((resolve, reject) =>{
+//         try {
+//             fs.readFile(path, (err, dataOld) => {
+//                 if (err) throw err;
+//                 let pacienteJson = JSON.parse(dataOld);
+//                 pacienteJson.estado = dataNew;
+                
+//                 let data = JSON.stringify(pacienteJson, null, 2);
+            
+//                 fs.writeFile(path, data, (err) => {
+//                     if (err) throw err;
+//                     console.log('Data written to file');
+//                     resolve(data);a
+//                 });
+//             });
+//         } catch (error) {
+//             reject(error);
+//         }
+//     })
+// }
+
+
+module.exports = { updateJson, updateJsonFiles };

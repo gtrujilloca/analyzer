@@ -7,7 +7,7 @@ const extname = require('path');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
-const updateJson = require('./jsonEditFile');
+const {updateJson} = require('./jsonEditFile');
 
 //funciones system file para manejo de archivos
 
@@ -83,8 +83,8 @@ async function downloadBlobForPath(blobFile) {
     }
     console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
     debugger;
-    
-    deletedBlobForPath(CONTAINER_NAME_ENTRADA, blobFile)
+    console.log(blobFile);
+    //deletedBlobForPath(CONTAINER_NAME_ENTRADA, blobFile)
     updateJson( ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 2);
     searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
   } catch (error) {

@@ -9,7 +9,7 @@ const { pushfile, getListFile, veryContainer, veryBlob, deleteBlob} = require(".
 //clase para correr funciines de comando bash
 const starProcess = require("./runProcess");
 //funciones system file para manejo de archivos
-const jsonEditFile = require('./jsonEditFile');
+const {updateJson} = require('./jsonEditFile');
 const { readFilee, createFile, deleteFolder, copyFiles} = require('./fs');
 let runProcess = null;
 
@@ -24,7 +24,6 @@ if (!runProcess) {
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 function searchFilesOscann(path) {
-  debugger;
   //leo el directorio que quiero inspeccionar
   fs.readdir(path, (err, files) => {
     //verifico que la ruta sea correcta y que no haya ningun error
@@ -55,11 +54,11 @@ function searchFilesOscann(path) {
                     const fileJson = filesList.splice(indexJson, 1);
                     const response = await pushFilesAzure(filesList, JSON.parse(jsonData));
                     console.log("response push files", response);
-                    const datajson = await jsonEditFile(path + "/" + files[i], 1)
+                    const datajson = await updateJson(path + "/" + files[i], 1)
                     const res = await pushFilesAzure(fileJson, JSON.parse(jsonData));
                     console.log("res json" + res);
                     console.log("temine Subir a azure");
-                    const datajson2 = await jsonEditFile(path + "/" + files[i], -1)
+                    const datajson2 = await updateJson(path + "/" + files[i], -1)
                     console.log(datajson2);
 
 
@@ -106,16 +105,16 @@ function pushFilesAzure(files,jsonPaciente) {
         console.log(existBlob);
           if(existBlob){
               await deleteBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName);
+              await deleteBlob(CONTAINER_NAME_ENTRADABACKUP, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName);
+              
           }    
           await pushfile(CONTAINER_NAME_ENTRADA, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName });
-          //await pushfile(CONTAINER_NAME_ENTRADABACKUP, {pathFile:file, blobName:blobName});
+          await pushfile(CONTAINER_NAME_ENTRADABACKUP, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName });
           console.log(i, files.length);
           i++;
           if (i === files.length) {
             resolve(true);
           }
-        
-        
       });
     } catch (error) {
       i++;
@@ -127,7 +126,6 @@ function pushFilesAzure(files,jsonPaciente) {
 
 
 module.exports = searchFilesOscann;
-//showFiles();
 
 
 

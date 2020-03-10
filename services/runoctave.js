@@ -3,7 +3,7 @@ const fs = require('fs');
 //libreria de path
 const extname = require('path');
 // Vamos a requerir del modulo que provee Node.js
-const clasificador = require('./clasificadores');
+const {clasificador} = require('./clasificadores');
 //clase para correr funciines de comando bash
 const starProcess = require('./runProcess');
 //funciones system file para manejo de archivos
