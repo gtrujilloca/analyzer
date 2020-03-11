@@ -4,13 +4,13 @@ const fs = require("fs");
 //libreria de path
 const extname = require("path");
 // Vamos a requerir del modulo que provee Node.js 
-const { pushfile, getListFile, veryBlob, deleteBlob} = require("./azure");
+const { pushfile, veryBlob, deleteBlob} = require("./azure");
 //const { searchFiles } = require("./azure");
 //clase para correr funciines de comando bash
 const starProcess = require("./runProcess");
 //funciones system file para manejo de archivos
 const {updateJson} = require('./jsonEditFile');
-const { readFilee, createFile, deleteFolder, copyFiles} = require('./fs');
+const { readFilee, createFile, deleteFolder, copyFiles, getListFile} = require('./fs');
 let runProcess = null;
 
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA || "entrada";
@@ -45,6 +45,9 @@ function searchFilesOscann(path) {
           //console.log(extname.parse(path + "/" + files[i]));
           readFilee(path + "/" + files[i]).then(jsonData => {
             if (JSON.parse(jsonData).estado == 0) {
+              updateJson(path + "/" + files[i], 1).then(jsonUpdate=>{
+                console.log("Update Estado Json, Procesando files...");
+              })
               console.log("json para subir a azure", JSON.parse(jsonData));
 
               getListFile(path, async (err, filesList) => {
@@ -60,6 +63,7 @@ function searchFilesOscann(path) {
                     console.log("temine Subir a azure");
                     const datajson2 = await updateJson(path + "/" + files[i], -1)
                     console.log(datajson2);
+                    console.log(path);
 
 
                     copyFiles(path).then(resCopyfiles => {
@@ -68,6 +72,7 @@ function searchFilesOscann(path) {
                           console.log(resDeletedFolder);
                           if (resDeletedFolder) {
                             console.log("elimine folder");
+                            //log("/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas/logProcesoSubida.txt", "Files found... ", path , Date.now());
                           } else {
                             console.log("error al eliminar");
                           }

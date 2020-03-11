@@ -4,13 +4,13 @@
 //libreria de path
 const extname = require("path");
 // // Vamos a requerir del modulo que provee Node.js 
-const { pushfile, getListFile, veryBlob, deleteBlob} = require("./azure");
+const { pushfile, veryBlob, deleteBlob} = require("./azurePush");
 // // //const { searchFiles } = require("./azure");
 // // //clase para correr funciines de comando bash
 // // const starProcess = require("./runProcess");
 // // //funciones system file para manejo de archivos
 const { updateJson } = require('./jsonEditFile');
-const { readFilee, deleteFolder, copyFilesFinalizados} = require('./fs');
+const { readFilee, deleteFolder, copyFilesFinalizados, getListFile} = require('./fs');
 // // let runProcess = null;
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;

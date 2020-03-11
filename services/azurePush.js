@@ -1,6 +1,6 @@
 // const chalk = require('chalk');
 const { BlobServiceClient } = require('@azure/storage-blob');
-const  searchFilesRunOctave  = require('./runoctave');
+
 
 const fs = require('fs');
 const azure = require('azure-storage');
@@ -8,7 +8,7 @@ const extname = require('path');
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
-const {updateJson} = require('./jsonEditFile');
+
 
 //funciones system file para manejo de archivos
 
@@ -41,53 +41,6 @@ async function initServiceClient() {
 /**
  *
  */
-async function searchJsonBlob() {
-  // List the blob(s) in the container.
-  for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
-    if (extname.extname(blob.name) === '.json') {
-      //necesito acceder a la url y consultar la informacion de Json
-      console.log(urlAzure + blob.name);
-      const dataTestPacient = await axios.get(urlAzure + blob.name);
-      if (dataTestPacient.data.estado === 1) {
-        downloadBlobForPath(blob);
-       
-      }
-    }
-  }
-}
-
-async function downloadBlobForPath(blobFile) {
-    try {
-      var pathLevels = blobFile.name.split('/');
-      var filesDownloaded = 0;
-      // List the blob(s) in the container.
-      for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
-        var pathLevelsBlob = blob.name.split('/');
-        //verifico los blobs correspondientes al grupo del json encontrado
-        if (
-          pathLevelsBlob[0] === pathLevels[0] &&
-          pathLevelsBlob[1] === pathLevels[1] &&
-          pathLevelsBlob[2] === pathLevels[2]
-        ) {
-          if(extname.extname(blob.name)!=='.avi'){
-          filesDownloaded++;
-          await downloadBlob(blob);
-          
-        }
-          //console.log('download blob success');
-        }
-      }
-      console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
-      debugger;
-      console.log(blobFile);
-      deletedBlobForPath(blobFile)
-      updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
-      searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
-    } catch (error) {
-      console.log(error);
-    }
-
-}
 
 async function downloadBlob(blobFile) {
   try {
@@ -216,7 +169,6 @@ function deleteContainer (container, callback) {
 
 async function deletedBlobForPath(blobFile) {
   try {
-    console.log("Deleting Blobs...")
     var pathLevels = blobFile.name.split('/');
     var filesDeleted = 0;
     // List the blob(s) in the container.
@@ -236,7 +188,7 @@ async function deletedBlobForPath(blobFile) {
         //console.log('download blob success');
       }
     }
-    console.log('Deleted Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDeleted);     
+    console.log('Deleted Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);     
   } catch (error) {
     console.log(error);
   }
@@ -265,8 +217,8 @@ function veryBlob(nameContainer,blobName) {
        properties,
        status
      ) {
-       if(!status) reject(false);
-       
+
+      if(!status) reject(false);
        if (status.isSuccessful) {
          resolve(true);
        } else {
@@ -287,9 +239,7 @@ function veryBlob(nameContainer,blobName) {
 
 
 module.exports = {
-  initServiceClient,
   pushfile,
-  searchJsonBlob,
   veryContainer, 
   veryBlob, 
   deleteBlob

@@ -3,8 +3,8 @@ const fs = require('fs');
 const fse = require('fs-extra');
 
 
-const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP;
-const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
+const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradabackup';
+const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas';
 
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
@@ -136,7 +136,8 @@ const checkFiles = (path, className) => {
 async function copyFiles(file) {
   return new Promise((resolve, reject)=>{  
     try {
-     // console.log(file);
+     console.log(file);
+     debugger;
      const routeFileNew = file.split(ROUTER_ENTRY_FILE+"/")[1];
      const listFolderName = routeFileNew.split("/");
       const routeFilesNew = ROUTER_ENTRY_FILE_BACKUP+"/"+routeFileNew;
@@ -226,6 +227,32 @@ function log(pathFile, text){
   logger.write(text+'\n') // append string to your file
 }
 
+function getListFile(dir, done) {
+  console.log("get List")
+  var results = [];
+  fs.readdir(dir, function (err, list) {
+    if (err) return done(err);
+    var i = 0;
+    (function next() {
+      var file = list[i++];
+      if (!file) return done(null, results);
+      file = dir + '/' + file;
+      fs.stat(file, function (err2, stat) {
+        if (stat && stat.isDirectory()) {
+          getListFile(file, function (err3, res) {
+            results = results.concat(res);
+            next();
+          });
+        } else {
+          results.push(file);
+          next();
+        }
+      });
+    })();
+  });
+};
+
+
 
 module.exports = {
   createFile,
@@ -235,5 +262,6 @@ module.exports = {
     checkFiles,
     copyFiles,
     copyFilesFinalizados,
+    getListFile,
   log
 };
