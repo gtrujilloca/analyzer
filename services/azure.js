@@ -20,8 +20,14 @@ const urlAzure =
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const CONTAINER_NAME_FINALIZADOS_BACKUP = process.env.CONTAINER_NAME_FINALIZADOS_BACKUP || 'finalizadosbackup'
 let CONTAINER_CLIENT = null;
+let CONTAINER_CLIENT_BACKUP = null;
+
+
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+ROUTER_DOWNLOAD_BLOB_BACKUP = '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProcesoBackup'
+
 /**
  *
  */
@@ -31,6 +37,15 @@ async function initServiceClient() {
       AZURE_STORAGE_CONNECTION_STRING
     );
     CONTAINER_CLIENT = await CLIENT_SERVICE.getContainerClient(CONTAINER_NAME);
+  }
+}
+
+async function initServiceClientBackup() {
+  if (!CONTAINER_CLIENT_BACKUP) {
+    const CLIENT_SERVICE_BACKUP = await BlobServiceClient.fromConnectionString(
+      AZURE_STORAGE_CONNECTION_STRING
+    );
+    CONTAINER_CLIENT_BACKUP = await CLIENT_SERVICE_BACKUP.getContainerClient(CONTAINER_NAME_FINALIZADOS_BACKUP);
   }
 }
 
@@ -45,7 +60,8 @@ async function searchJsonBlob() {
       console.log(urlAzure + blob.name);
       const dataTestPacient = await axios.get(urlAzure + blob.name);
       if (dataTestPacient.data.estado === 1) {
-        log(ROUTER_DOWNLOAD_BLOB+'/logProcess.txt', 'Se encontro archivos para procesar... '+blob+" => urlAzure + blob.name =>"+ date).then(data=>{
+        var date = new Date();
+        log(ROUTER_DOWNLOAD_BLOB+'/logProcess.txt', 'Se encontro archivos para procesar... ', blob ," => "+urlAzure+" "+ blob.name +" => "+ date).then(data=>{
           console.log(data);
         });
         await downloadBlobForPath(blob);
@@ -55,11 +71,42 @@ async function searchJsonBlob() {
   }
 }
 
+
+async function ListPdf() {
+  // List the blob(s) in the container.
+  pdfArray = [];
+  await initServiceClientBackup();
+  for await (const blob of CONTAINER_CLIENT_BACKUP.listBlobsFlat()) {
+    if (extname.extname(blob.name) === '.pdf') {
+          console.log(blob.name);
+          pdfArray.push(blob.name);
+      }
+    }
+    console.log(pdfArray);
+}
+
+
+async function downloadPdf(nameHospital, NamePaciente) {
+  // List the blob(s) in the container.
+  console.log('Searching PDF Generados...');
+  const nameBlobtoSearch = nameHospital+'/patologia_'+NamePaciente+"/paciente_"+NamePaciente+"/paciente_"+NamePaciente+".pdf";
+  console.log(nameBlobtoSearch);
+  console.log(urlAzure + nameBlobtoSearch);
+  veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch).then(async(res)=>{
+    if(res === true){
+      console.log("Pdf Encontrado del paciente ");
+      await downloadBlobBackup(nameBlobtoSearch);
+    }
+  });
+  
+}
+
 async function downloadBlobForPath(blobFile) {
     try {
       var pathLevels = blobFile.name.split('/');
       const pathLog = pathLevels[0]+"/"+pathLevels[1]+"/"+pathLevels[2]+"/"+pathLevels[2]+".txt";
       var filesDownloaded = 0;
+      var down = 0 ;
       // List the blob(s) in the container.
       for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
         var pathLevelsBlob = blob.name.split('/');
@@ -71,15 +118,17 @@ async function downloadBlobForPath(blobFile) {
         ) {
           if(extname.extname(blob.name)!=='.avi'){
           filesDownloaded++;
-          await downloadBlob(blob);        
+          await downloadBlob(blob); 
+          console.log(down++ , filesDownloaded);
+
         }
         }
       }
+      var date = new Date();
       log(ROUTER_DOWNLOAD_BLOB+'/logProcess.txt', 'Descargo Blobs... '+filesDownloaded+"  =>"+ date).then(data=>{
         console.log(data);
       });
       console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
-      var date = new Date();
       log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
           console.log(data);
       });
@@ -127,12 +176,61 @@ async function downloadBlob(blobFile) {
   }
 }
 
+async function downloadBlobBackup(blobFileName) {
+  try {
+    if (!fs.existsSync(ROUTER_DOWNLOAD_BLOB_BACKUP)) {
+      console.log(
+        ROUTER_DOWNLOAD_BLOB_BACKUP +
+          'Directorio no existe, Creando...'
+      );
+      fs.mkdirSync(ROUTER_DOWNLOAD_BLOB_BACKUP);
+      console.log(ROUTER_DOWNLOAD_BLOB_BACKUP + ' created.');
+    }
+    // NOTE: does not handle pagination.
+    var pathNew = blobFileName.split('/');
+    var pathgeneral = ROUTER_DOWNLOAD_BLOB_BACKUP;
+    for (var i = 0; i < pathNew.length - 1; i++) {
+      //verifico si el directorio donde voy a guardar existe si no lo creo
+      if (!fs.existsSync(pathgeneral + '/' + pathNew[i])) {
+        pathgeneral = pathgeneral + '/' + pathNew[i];
+        fs.mkdirSync(pathgeneral);
+      } else {
+        pathgeneral = pathgeneral + '/' + pathNew[i];
+      }
+    }
+    //instancio la conexion con el servicio a azure para descargar el blob al directorio seleccionado
+    const response = await getBlobBackUp(blobFileName);
+   
+    return response;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 function getBlob(blobFileName) {
   return new Promise((resolve, reject) => {
     blobService.getBlobToLocalFile(
       CONTAINER_NAME,
       blobFileName,
       ROUTER_DOWNLOAD_BLOB + '/' + blobFileName,
+      function(error) {
+        if (error) {
+          console.log(error);
+          reject(false);
+        } else {
+          resolve(true);
+        }
+      }
+    );
+  });
+}
+
+function getBlobBackUp(blobFileName) {
+  return new Promise((resolve, reject) => {
+    blobService.getBlobToLocalFile(
+      CONTAINER_NAME_FINALIZADOS_BACKUP,
+      blobFileName,
+      ROUTER_DOWNLOAD_BLOB_BACKUP + '/' + blobFileName,
       function(error) {
         if (error) {
           console.log(error);
@@ -292,5 +390,7 @@ module.exports = {
   pushfile,
   searchJsonBlob,
   veryContainer, 
-  veryBlob 
+  veryBlob, 
+  downloadPdf, 
+  ListPdf
 };

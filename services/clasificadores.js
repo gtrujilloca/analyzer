@@ -56,8 +56,10 @@ const callChecksStudies = (pathPaciente, paciente, pathLog) => {
 }
 
 const checkEstudies = (pathPaciente, paciente) => {
-  //if (jsonpaciente.Results_types)
-  //console.log("result types " + jsonpaciente.Results_types.AI);
+  //if (paciente.Results_types.AI == true){
+  //   console.log("si se genera pdf");
+  // }
+
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
@@ -80,7 +82,7 @@ const checkEstudies = (pathPaciente, paciente) => {
             break;
 
           case 2:
-            //console.log('Alzheimer ');
+      
             //verifico si el archivo del estudio existe para porder realizar la clasificacion
             checkFiles(pathPaciente, "Estudio_AD.csv").then(res => {
               //si existe leo el archivo
@@ -108,7 +110,7 @@ const checkEstudies = (pathPaciente, paciente) => {
 
           case 3:
 
-            //console.log('Parkinson');
+          
             //verifico si el archivo del estudio existe para porder realizar la clasificacion
             checkFiles(pathPaciente, "Estudio_PD.csv").then(res => {
               //si existe leo el archivo
