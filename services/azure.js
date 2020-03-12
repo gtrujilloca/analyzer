@@ -6,14 +6,12 @@ const fs = require('fs');
 const azure = require('azure-storage');
 const extname = require('path');
 const axios = require('axios');
-const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
 const {updateJson} = require('./jsonEditFile');
-
+const {log} = require('./fs');
 //funciones system file para manejo de archivos
 
 
-const fileService = azure.createFileService();
 //conexion con azure
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -22,9 +20,7 @@ const urlAzure =
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
-const ROUTER_DOWNLOAD_BLOB =
-  process.env.ROUTER_DOWNLOAD_BLOB ||
-  '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
 let CONTAINER_CLIENT = null;
 /**
  *
@@ -49,8 +45,11 @@ async function searchJsonBlob() {
       console.log(urlAzure + blob.name);
       const dataTestPacient = await axios.get(urlAzure + blob.name);
       if (dataTestPacient.data.estado === 1) {
-        downloadBlobForPath(blob);
-       
+        log(ROUTER_DOWNLOAD_BLOB+'/logProcess.txt', 'Se encontro archivos para procesar... '+blob+" => urlAzure + blob.name =>"+ date).then(data=>{
+          console.log(data);
+        });
+        await downloadBlobForPath(blob);
+        await deletedBlobForPath(blob);
       }
     }
   }
@@ -59,6 +58,7 @@ async function searchJsonBlob() {
 async function downloadBlobForPath(blobFile) {
     try {
       var pathLevels = blobFile.name.split('/');
+      const pathLog = pathLevels[0]+"/"+pathLevels[1]+"/"+pathLevels[2]+"/"+pathLevels[2]+".txt";
       var filesDownloaded = 0;
       // List the blob(s) in the container.
       for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
@@ -71,20 +71,27 @@ async function downloadBlobForPath(blobFile) {
         ) {
           if(extname.extname(blob.name)!=='.avi'){
           filesDownloaded++;
-          await downloadBlob(blob);
-          
+          await downloadBlob(blob);        
         }
-          //console.log('download blob success');
         }
       }
+      log(ROUTER_DOWNLOAD_BLOB+'/logProcess.txt', 'Descargo Blobs... '+filesDownloaded+"  =>"+ date).then(data=>{
+        console.log(data);
+      });
       console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
-      debugger;
-      console.log(blobFile);
-      deletedBlobForPath(blobFile)
-      updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
-      searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name);     
+      var date = new Date();
+      log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
+          console.log(data);
+      });
+      //deletedBlobForPath(blobFile)
+      updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2, pathLog);
+      searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
     } catch (error) {
-      console.log(error);
+      var date = new Date();
+      log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Error al descargar Archivos...'+ date).then(data=>{
+          console.log(data);
+          console.log(error);
+      });
     }
 
 }
@@ -94,7 +101,7 @@ async function downloadBlob(blobFile) {
     if (!fs.existsSync(ROUTER_DOWNLOAD_BLOB)) {
       console.log(
         ROUTER_DOWNLOAD_BLOB +
-          ' does not exist. Attempting to create this directory...'
+          'Directorio no existe, Creando...'
       );
       fs.mkdirSync(ROUTER_DOWNLOAD_BLOB);
       console.log(ROUTER_DOWNLOAD_BLOB + ' created.');
@@ -113,6 +120,7 @@ async function downloadBlob(blobFile) {
     }
     //instancio la conexion con el servicio a azure para descargar el blob al directorio seleccionado
     const response = await getBlob(blobFile.name);
+   
     return response;
   } catch (error) {
     console.error(error);
@@ -130,7 +138,6 @@ function getBlob(blobFileName) {
           console.log(error);
           reject(false);
         } else {
-          //console.log(' Blob ' + blobFileName + ' download finished.');
           resolve(true);
         }
       }
@@ -157,7 +164,6 @@ function pushfile(containerName, file) {
         }
       );
     } catch (error) {
-      //console.log(error);
       reject(error);
     }
   });
@@ -279,11 +285,6 @@ function veryBlob(nameContainer,blobName) {
   })
 }
 
-/* (async function main() {
-  await searchJsonBlob();
-  console.log('Done...');
-})(); */
-
 
 
 module.exports = {
@@ -291,6 +292,5 @@ module.exports = {
   pushfile,
   searchJsonBlob,
   veryContainer, 
-  veryBlob, 
-  deleteBlob
+  veryBlob 
 };

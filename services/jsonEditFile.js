@@ -1,13 +1,13 @@
 const updateJsonFile = require('update-json-file');
 const fs = require('fs');
 
-const updateJson = (path, dataNew) => {
+
+
+const updateJson = (path, dataNew, pathLog) => {
   return new Promise((resolve, reject) => {
     try {
-      console.log(path, dataNew);
       fs.readFile(path, (err, dataOld) => {
         if (err) reject(err);
-        console.log("dataOld", dataOld.toString());
         let pacienteJson = JSON.parse(dataOld);
         pacienteJson.estado = dataNew;
 
@@ -15,7 +15,6 @@ const updateJson = (path, dataNew) => {
 
         fs.writeFile(path, data, err => {
           if (err) reject(err);
-          console.log('Data written to file');
           resolve(data);
         });
       });
@@ -25,21 +24,18 @@ const updateJson = (path, dataNew) => {
   });
 };
 
-const updateJsonFiles = (path, dataNew) => {
+const updateJsonFiles = (path, dataNew, pathLog) => {
   return new Promise((resolve, reject) => {
     try {
       fs.readFile(path, (err, dataOld) => {
-        console.log('read json ' + path);
+        
         if (err) reject(err);
         let pacienteJson = JSON.parse(dataOld);
-        console.log('res json', pacienteJson);
         pacienteJson = dataNew;
-        console.log('res json', pacienteJson);
         let data = JSON.stringify(pacienteJson, null, 2);
-
+    
         fs.writeFile(path, data, err => {
           if (err) reject(err);
-          console.log('Data written to file');
           resolve(data);
         });
       });

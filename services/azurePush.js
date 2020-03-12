@@ -231,11 +231,6 @@ function veryBlob(nameContainer,blobName) {
   })
 }
 
-/* (async function main() {
-  await searchJsonBlob();
-  console.log('Done...');
-})(); */
-
 
 
 module.exports = {

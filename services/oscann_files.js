@@ -103,19 +103,26 @@ function pushFilesAzure(files,jsonPaciente) {
   return new Promise((resolve, reject) => {
     try {
       let i = 0;
-      console.log(files.length);
+    
       files.forEach(async (file) => {
         const blobName = file.split(ROUTER_ENTRY_FILE + "/")[1];
-        const existBlob = await veryBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName)
-        console.log(existBlob);
+        const existBlob = await veryBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+blobName)
           if(existBlob){
-              await deleteBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName);
-              await deleteBlob(CONTAINER_NAME_ENTRADABACKUP, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName);
-              
+            if(extname.extname(blobName) === ".json"){
+              await deleteBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+".json");
+              await deleteBlob(CONTAINER_NAME_ENTRADABACKUP, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+".json");
+            }
+              await deleteBlob(CONTAINER_NAME_ENTRADA, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+blobName);
+              await deleteBlob(CONTAINER_NAME_ENTRADABACKUP, jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+blobName);
+          }
+          if(extname.extname(blobName) === ".json"){
+            await pushfile(CONTAINER_NAME_ENTRADA, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+".json" });
+            await pushfile(CONTAINER_NAME_ENTRADABACKUP, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+"/paciente_"+jsonPaciente.Label+".json" });
+            console.log(i, files.length);
+          }else{
+            await pushfile(CONTAINER_NAME_ENTRADA, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+blobName });
+            await pushfile(CONTAINER_NAME_ENTRADABACKUP, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/paciente_"+blobName });
           }    
-          await pushfile(CONTAINER_NAME_ENTRADA, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName });
-          await pushfile(CONTAINER_NAME_ENTRADABACKUP, { pathFile: file, blobName: jsonPaciente.Hospital+"/patologia_"+jsonPaciente.Label+"/"+blobName });
-          console.log(i, files.length);
           i++;
           if (i === files.length) {
             resolve(true);

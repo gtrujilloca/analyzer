@@ -1,7 +1,7 @@
 //invoco servicio para subir a Base de datos
 const starProcess = require("./runProcess");
 //funciones para manejor de archivos file system
-const { readFilee, checkFiles } = require('./fs');
+const { readFilee, checkFiles, log } = require('./fs');
 const { updateJsonFiles } = require('./jsonEditFile');
 //clase para subir a base de datos mongo de datos
 const push_DB_datos = require("./push_bd_datos.js");
@@ -10,6 +10,7 @@ const uploadToDBToTest = require("./push_bd_test.js");
 //inicializo en null una consola
 let runProcess = null;
 
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
 
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
@@ -19,31 +20,33 @@ if (!runProcess) {
 
 
 
-const clasificador = pathPaciente => {
+const clasificador = (pathPaciente, pathLog) => {
   console.log("Inicie Clasificador");
   let jsonpaciente = null;
   readFilee(pathPaciente.dir + "/" + pathPaciente.base).then(data => {
     jsonpaciente = JSON.parse(data.toString());
-    callChecksStudies(pathPaciente, jsonpaciente);
+    callChecksStudies(pathPaciente, jsonpaciente, pathLog);
   }).catch(err => {
-    console.log(err);
+    var date = new Date();
+    log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Error al llamar los clasificadores... '+ date).then(data=>{
+        console.log(data);
+      });
+      console.log(err);
   });
 }
 
-const callChecksStudies = (pathPaciente, paciente) => {
-  console.log("ckeckEstudies");
+const callChecksStudies = (pathPaciente, paciente, pathLog) => {
+  console.log("Verificando pathologias a Estudiar");
   checkEstudies(pathPaciente, paciente).then(checkList => {
-    console.log("Promise ALl");
     Promise.all(checkList).then(values => {
-      console.log("Estudios Clasificados completos");
-      console.log(pathPaciente)
         upDateClasificadorJson(pathPaciente, paciente).then(res => {
-        console.log(res, paciente);
-        updateJsonFiles(pathPaciente.dir+"/"+pathPaciente.base, res);
-
-        console.log("termine clasificador");
-        push_DB_datos(pathPaciente);
-        uploadToDBToTest(pathPaciente);
+          var date = new Date();
+          log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Clasificadores generados correctamente...'+paciente+" => "+ date).then(data=>{
+          });
+          updateJsonFiles(pathPaciente.dir+"/"+pathPaciente.base, res, pathLog);
+          console.log("termine clasificador");
+          push_DB_datos(pathPaciente, pathLog);
+          uploadToDBToTest(pathPaciente, pathLog);
       });
     });
   });
@@ -58,7 +61,6 @@ const checkEstudies = (pathPaciente, paciente) => {
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
-
       //array de promoesas
       promesasArray = [];
       //del json pacientes solo obtenfo la propiedad patologias

@@ -7,8 +7,8 @@ const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP || '/home/
 const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas';
 
 
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
-const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP;
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProcesoBackup';
 //recibe un objeto con data del paciente y el comando que se va a gardar
 const createFile = data => {
   return new Promise((resolve, reject) => {
@@ -218,17 +218,7 @@ async function copyFilesFinalizados(file) {
 }
 
 
-
-function log(pathFile, text){
-  var logger = fs.createWriteStream(pathFile, {
-    flags: 'a' // 'a' means appending (old data will be preserved)
-  })
-  
-  logger.write(text+'\n') // append string to your file
-}
-
 function getListFile(dir, done) {
-  console.log("get List")
   var results = [];
   fs.readdir(dir, function (err, list) {
     if (err) return done(err);
@@ -252,6 +242,20 @@ function getListFile(dir, done) {
   });
 };
 
+
+function log(pathFile, text){
+  return new Promise((resolve, reject)=>{
+    try {
+      var logger = fs.createWriteStream(pathFile, {
+        flags: 'a' // 'a' means appending (old data will be preserved)
+      })
+      logger.write(text+'\n') // append string to your file
+      resolve(text);
+    } catch (error) {
+      reject(error);
+    }
+  })
+}
 
 
 module.exports = {
