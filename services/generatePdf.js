@@ -24,9 +24,6 @@ function generatePdf(pathPaciente, pathLog) {
     .then(data => {
       jsonpaciente = JSON.parse(data.toString());
       console.log(jsonpaciente);
-      return runProcess(command);
-    })
-    .then(data => {
       var command =
         "cd /home/andresagudelo/Documentos/QTproyects/qt_pdf_prueba; ./qt_pdf_prueba '" +
         ruta[ruta.length - 2] +
@@ -35,7 +32,9 @@ function generatePdf(pathPaciente, pathLog) {
         "' '" +
         pathPaciente.dir +
         "'";
-      console.log(command);
+        console.log(command);
+      return runProcess(command);
+    }).then(dataRunCommand => {
       var date = new Date();
       return log(
         ROUTER_DOWNLOAD_BLOB + '/' + pathLog,
@@ -44,19 +43,20 @@ function generatePdf(pathPaciente, pathLog) {
           ' \n Subiendo a azure los resultados pdf ...' +
           date
       );
-    })
-    .then(data => {
-      console.log(data);
+    }).then(dataLog => {
+      console.log(dataLog);
       return veryPdf(pathPaciente.dir, ruta[ruta.length - 1] + '.pdf');
-    })
-    .then(res => {
-      searchFilesPro(pathPaciente);
-      console.log('genere pdf' + data);
-    })
-    .catch(err => {});
+    }).then(resVeryPdf => {
+      console.log(resVeryPdf);
+      
+        searchFilesPro(pathPaciente, pathLog);
+        console.log('genere pdf');
+      
+    }).catch(err => {console.log(err)});
 }
 
 function veryPdf(pathFile, nameFile) {
+  console.log("verificando creacion del pdf...")
   return new Promise((resolve, reject) => {
     const verifyPdf = setInterval(() => {
       fs.readdir(pathFile, (err, files) => {
@@ -67,6 +67,7 @@ function veryPdf(pathFile, nameFile) {
         }
         if (files.indexOf(nameFile) > -1) {
           //resuelvo true si si lo encuentro
+          console.log("Pdf encontrado");
           clearInterval(verifyPdf);
           resolve(true);
         }

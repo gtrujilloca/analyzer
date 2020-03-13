@@ -18,8 +18,8 @@ const runAutomator = require('./services/runAutomator');
 
 
 try {
-  console.log('Inicio Automator Este proceso se ejecutara cada 4 minutos ...');
-      cron.schedule('  */4 * * * *', () => {
+  console.log('Inicio Automator Este proceso se ejecutara cada 5 minutos ...');
+      //cron.schedule('  */5 * * * *', () => {
             console.log('Searching Blobs in Azure ...');
              runAutomator().then(() => {
                  const date = new Date();
@@ -28,7 +28,7 @@ try {
                   console.log(data);
                 });
              });
-     });
+     //});
 } catch (error) {
   console.log("Tarea Detenida");
 }

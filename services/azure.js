@@ -124,8 +124,7 @@ async function downloadBlobForPath(blobFile) {
       var pathLevels = blobFile.name.split('/');
       const pathLog = pathLevels[0]+"/"+pathLevels[1]+"/"+pathLevels[2]+"/"+pathLevels[2]+".txt";
       var filesDownloaded = 0;
-      var down = 0 ;
-      // List the blob(s) in the container.
+           // List the blob(s) in the container.
       for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
         var pathLevelsBlob = blob.name.split('/');
         //verifico los blobs correspondientes al grupo del json encontrado
@@ -136,9 +135,8 @@ async function downloadBlobForPath(blobFile) {
         ) {
           if(extname.extname(blob.name)!=='.avi'){
           filesDownloaded++;
+          console.log(filesDownloaded);
           await downloadBlob(blob); 
-          console.log(down++ , filesDownloaded);
-
         }
         }
       }
@@ -150,7 +148,6 @@ async function downloadBlobForPath(blobFile) {
       log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
           console.log(data);
       });
-      //deletedBlobForPath(blobFile)
       updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2, pathLog);
       searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
     } catch (error) {
@@ -411,5 +408,6 @@ module.exports = {
   veryBlob, 
   downloadPdf, 
   ListPdf, 
-  searchPdf
+  searchPdf,
+  deleteBlob
 };

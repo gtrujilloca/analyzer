@@ -16,12 +16,12 @@ const pathEntrada = process.env.ROUTER_ENTRY_FILE || '/home/andresagudelo/Docume
 
 try {
   console.log('Inicio Automator Este proceso se ejecutara cada 2 minutos ...');
-      cron.schedule('  */2 * * * *', () => {
+      //cron.schedule('  */2 * * * *', () => {
             console.log('Searching Blobs in Azure ...');
             searchFilesOscann(pathEntrada);
             //  downloadPdf("HUCV","01081");
             //  ListPdf();
-     });
+     //});
 } catch (error) {
   console.log("Tarea Detenida");
 }
