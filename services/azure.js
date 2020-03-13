@@ -17,6 +17,9 @@ const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 const urlAzure =
   'https://externalstorageaccount.blob.core.windows.net/entrada/';
+
+  const urlAzureDownoload =
+  'https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
@@ -79,10 +82,11 @@ async function ListPdf() {
   for await (const blob of CONTAINER_CLIENT_BACKUP.listBlobsFlat()) {
     if (extname.extname(blob.name) === '.pdf') {
           console.log(blob.name);
-          pdfArray.push(blob.name);
+          pdfArray.push(urlAzureDownoload+blob.name);
       }
     }
     console.log(pdfArray);
+    return pdfArray;
 }
 
 
@@ -98,7 +102,21 @@ async function downloadPdf(nameHospital, NamePaciente) {
       await downloadBlobBackup(nameBlobtoSearch);
     }
   });
-  
+}
+
+async function searchPdf(Hospital, Pacient) {
+  // List the blob(s) in the container.
+  console.log('Searching PDF Generados...');
+  const nameBlobtoSearch = Hospital+'/patologia_'+Pacient+"/paciente_"+Pacient+"/paciente_"+Pacient+".pdf";
+  console.log(nameBlobtoSearch);
+  console.log(urlAzureDownoload + nameBlobtoSearch);
+  let path = '';
+  const res = await veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch);
+    if(res){
+      console.log("Pdf Encontrado del paciente ");
+       path = urlAzureDownoload+nameBlobtoSearch;
+    }
+    return path;
 }
 
 async function downloadBlobForPath(blobFile) {
@@ -392,5 +410,6 @@ module.exports = {
   veryContainer, 
   veryBlob, 
   downloadPdf, 
-  ListPdf
+  ListPdf, 
+  searchPdf
 };
