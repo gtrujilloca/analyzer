@@ -1,17 +1,14 @@
-//invoco servicio para subir a Base de datos
 const starProcess = require("./runProcess");
-//funciones para manejor de archivos file system
 const { readFilee, checkFiles, log } = require('./fs');
-const { updateJsonFiles } = require('./jsonEditFile');
-//clase para subir a base de datos mongo de datos
+const { updateJson } = require('./jsonEditFile');
 const push_DB_datos = require("./push_bd_datos.js");
-// //clase para subir a base de datos test
 const uploadToDBToTest = require("./push_bd_test.js");
-//inicializo en null una consola
-let runProcess = null;
+
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const ROUTER_CLASIFICADORES = process.env.ROUTER_CLASIFICADORES;
 
+let runProcess = null;
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
   runProcess = starProcess();
@@ -19,90 +16,80 @@ if (!runProcess) {
 
 
 
-
 const clasificador = (pathPaciente, pathLog) => {
-  console.log("Inicie Clasificador");
+  console.log("Run Clasificadores");
   let jsonpaciente = null;
-  readFilee(pathPaciente.dir + "/" + pathPaciente.base).then(data => {
+  readFilee(`${pathPaciente.dir}/${pathPaciente.base}`).then(data => {
     jsonpaciente = JSON.parse(data.toString());
     callChecksStudies(pathPaciente, jsonpaciente, pathLog);
   }).catch(err => {
-    var date = new Date();
-    log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Error al llamar los clasificadores... '+ date).then(data=>{
+    let date = new Date();
+    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al llamar los clasificadores... ${date}`).then(data=>{
         console.log(data);
       });
       console.log(err);
   });
 }
 
-const callChecksStudies = (pathPaciente, paciente, pathLog) => {
-  console.log("Verificando pathologias a Estudiar");
-  checkEstudies(pathPaciente, paciente).then(checkList => {
-    Promise.all(checkList).then(values => {
-        upDateClasificadorJson(pathPaciente, paciente).then(res => {
-          var date = new Date();
-          log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Clasificadores generados correctamente...'+paciente+" => "+ date).then(data=>{
-          });
-          updateJsonFiles(pathPaciente.dir+"/"+pathPaciente.base, res, pathLog);
-          console.log("termine clasificador");
-          push_DB_datos(pathPaciente, pathLog);
-          uploadToDBToTest(pathPaciente, pathLog);
-      });
-    });
-  });
+// const callChecksStudies = (pathPaciente, paciente, pathLog) => {
+//   console.log("Verificando pathologias a Estudiar");
+//   checkEstudies(pathPaciente, paciente, pathLog).then(checkList => {
+//     Promise.all(checkList).then(async values => {
+//         const res = await upDateClasificadorJson(pathPaciente, paciente);
+//           let date = new Date();
+//           await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${paciente} => ${date}`);
+//           updateJson(`${pathPaciente.dir}/${pathPaciente.base}`, res);
+//           console.log("Proceso de clasificacion terminada");
+//           //push_DB_datos(pathPaciente, pathLog);
+//           //uploadToDBToTest(pathPaciente, pathLog);
+//       });
+//   });
+// }
 
-
-
+const callChecksStudies = async (pathPaciente, paciente, pathLog) => {
+  try {
+    console.log("Verificando pathologias a Estudiar");
+    const checkList = await checkEstudies(pathPaciente, paciente, pathLog)
+      await Promise.all(checkList);
+    const res = await upDateClasificadorJson(pathPaciente, paciente);
+    let date = new Date();
+      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${paciente} => ${date}`);
+      await updateJson(`${pathPaciente.dir}/${pathPaciente.base}`, res);
+    console.log("Proceso de clasificacion terminada");
+    push_DB_datos(pathPaciente, pathLog);
+    uploadToDBToTest(pathPaciente, pathLog);
+  } catch (error) {
+    
+  }
 }
 
-const checkEstudies = (pathPaciente, paciente) => {
-  //if (paciente.Results_types.AI == true){
-  //   console.log("si se genera pdf");
-  // }
-
+const checkEstudies = (pathPaciente, paciente, pathLog) => {
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
-      //array de promoesas
-      promesasArray = [];
-      //del json pacientes solo obtenfo la propiedad patologias
+      promesasArray = []; 
       const { Pathologies_Studied } = paciente;
-      //creo bandera para saber cuantas promesas se han resuelto
       let addCheck = 0;
-      //ciclo para recorrer los estudios a clasificar
       Pathologies_Studied.forEach((pathology) => {
-        //dependiendo del caso del estudio realizo la clasificacion
         switch (pathology) {
           case 1:
-            //esta opcion es para estudios de ejemplo
-            console.log('Sin especificar ' + pathology);
+            console.log(`Sin especificar ${pathology}`);
             addCheck += 1;
-            //llamo metodo de verificar la promesa si ya fue resuelra
             verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             break;
-
           case 2:
-      
-            //verifico si el archivo del estudio existe para porder realizar la clasificacion
             checkFiles(pathPaciente, "Estudio_AD.csv").then(res => {
-              //si existe leo el archivo
-              if (res === true) {
-                //leo el archivo correspondiente al estudio a clasificar
-                return readFilee(pathPaciente.dir + "/Estudio_AD.csv");
+              if (res) {
+                return readFilee(`${pathPaciente.dir}/Estudio_AD.csv`);
               } else {
                 console.log("Archivo Estudio AD no encontrado");
               }
-              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
             }).then((data) => {
-              //Leo el Estudio CSV 
-              //guardo en la variable el comando a ejecutar por bash
-              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_EA_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
-              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              let commandClasificadorAD =
+               `cd ${ROUTER_CLASIFICADORES}/Clasificador_EA_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;
-              //verifico si la promesa esta resuelta
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
-              //console.log("Alzheimer terminado");
             }).catch(err => {
               //console.log(err);
             });
@@ -113,24 +100,17 @@ const checkEstudies = (pathPaciente, paciente) => {
           
             //verifico si el archivo del estudio existe para porder realizar la clasificacion
             checkFiles(pathPaciente, "Estudio_PD.csv").then(res => {
-              //si existe leo el archivo
-              if (res === true) {
-                //leo el archivo correspondiente al estudio a clasificar
+              if (res) {
                 return readFilee(pathPaciente.dir + "/Estudio_PD.csv");
               } else {
                 console.log("Archivo Estudio Parkinson no encontrado");
               }
-              //despues de la promesa anterior resuelta ejecuto obtengo la de leer el archivo
             }).then((data) => {
-              //Leo el Estudio CSV 
-              //guardo en la variable el comando a ejecutar por bash
-              var commandClasificadorPD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_Parkinson_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
-              //guardo la promesa en el array de las promesas para saber cuantas han terminado
+              let commandClasificadorPD = 
+              `cd ${ROUTER_CLASIFICADORES}/Clasificador_Parkinson_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
               promesasArray.push(runProcess(commandClasificadorPD));
               addCheck += 1;
-              //verifico si la promesa esta resuelta
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
-              //console.log("Parkinson terminado");
             }).catch(err => {
               //console.log(err);
             });
@@ -152,7 +132,8 @@ const checkEstudies = (pathPaciente, paciente) => {
             }).then((data) => {
               //Leo el Estudio CSV 
               //guardo en la variable el comando a ejecutar por bash
-              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_DFT_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              let commandClasificadorAD = 
+              `cd ${ROUTER_CLASIFICADORES}/Clasificador_DFT_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
               //guardo la promesa en el array de las promesas para saber cuantas han terminado
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;
@@ -180,7 +161,8 @@ const checkEstudies = (pathPaciente, paciente) => {
             }).then((data) => {
               //Leo el Estudio CSV 
               //guardo en la variable el comando a ejecutar por bash
-              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_DCL_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              let commandClasificadorAD = 
+              `cd ${ROUTER_CLASIFICADORES}/Clasificador_DCL_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
               //guardo la promesa en el array de las promesas para saber cuantas han terminado
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;
@@ -208,7 +190,8 @@ const checkEstudies = (pathPaciente, paciente) => {
             }).then((data) => {
               //Leo el Estudio CSV 
               //guardo en la variable el comando a ejecutar por bash
-              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_EHM_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              let commandClasificadorAD = 
+              `cd ${ROUTER_CLASIFICADORES}/Clasificador_EHM_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
               //guardo la promesa en el array de las promesas para saber cuantas han terminado
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;
@@ -236,7 +219,8 @@ const checkEstudies = (pathPaciente, paciente) => {
             }).then((data) => {
               //Leo el Estudio CSV 
               //guardo en la variable el comando a ejecutar por bash
-              var commandClasificadorAD = "cd /home/andresagudelo/Documentos/OCTAVEproyects/Clasificadores/Clasificador_Parkinsionismos_vs_control/src && ./main " + pathPaciente.dir + " " + data.toString().replace(/,/g, " ");
+              let commandClasificadorAD = 
+              `cd ${ROUTER_CLASIFICADORES}/Clasificador_Parkinsionismos_vs_control/src  && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
               //guardo la promesa en el array de las promesas para saber cuantas han terminado
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;

@@ -3,7 +3,7 @@ const fs = require('fs');
 
 
 
-const updateJson = (path, dataNew, pathLog) => {
+const updateJson = (path, dataNew) => {
   return new Promise((resolve, reject) => {
     try {
       fs.readFile(path, (err, dataOld) => {
@@ -24,25 +24,5 @@ const updateJson = (path, dataNew, pathLog) => {
   });
 };
 
-const updateJsonFiles = (path, dataNew, pathLog) => {
-  return new Promise((resolve, reject) => {
-    try {
-      fs.readFile(path, (err, dataOld) => {
-        
-        if (err) reject(err);
-        let pacienteJson = JSON.parse(dataOld);
-        pacienteJson = dataNew;
-        let data = JSON.stringify(pacienteJson, null, 2);
-    
-        fs.writeFile(path, data, err => {
-          if (err) reject(err);
-          resolve(data);
-        });
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
 
-module.exports = { updateJson, updateJsonFiles };
+module.exports = {updateJson};
