@@ -1,12 +1,7 @@
 // const chalk = require('chalk');
 const { BlobServiceClient } = require('@azure/storage-blob');
-
-
 const fs = require('fs');
 const azure = require('azure-storage');
-const extname = require('path');
-const axios = require('axios');
-const uuidv1 = require('uuid/v1');
 const blobService = azure.createBlobService();
 
 
@@ -15,20 +10,16 @@ const blobService = azure.createBlobService();
 
 const fileService = azure.createFileService();
 //conexion con azure
-const AZURE_STORAGE_CONNECTION_STRING =
-  process.env.AZURE_STORAGE_CONNECTION_STRING;
-const urlAzure =
-  'https://externalstorageaccount.blob.core.windows.net/entrada/';
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const urlAzure = 'https://externalstorageaccount.blob.core.windows.net/entrada/';
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
-
-const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
-const ROUTER_DOWNLOAD_BLOB =
-  process.env.ROUTER_DOWNLOAD_BLOB ||
-  '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const CONTAINER_NAME = process.env.CONTAINER_NAME ;
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 let CONTAINER_CLIENT = null;
 /**
  *
  */
+
 async function initServiceClient() {
   if (!CONTAINER_CLIENT) {
     const CLIENT_SERVICE = await BlobServiceClient.fromConnectionString(

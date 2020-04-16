@@ -1,6 +1,6 @@
 const fs = require('fs');
-const { log } = require('./fs');
-const starProcess = require("./runProcess");
+const { log } = require('../system-service/fs');
+const starProcess = require("../system-service/runProcess");
 
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';

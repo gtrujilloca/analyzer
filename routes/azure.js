@@ -1,12 +1,10 @@
 const express = require('express');
-const AzureService = require('../services/azure');
+const AzureService = require('../services/azure-service/azure');
 
 
 function azureApi (app){
     const router = express.Router();
     app.use("/api/azure", router);
-
-
 
 
     router.get("/", async function(req, res, next){

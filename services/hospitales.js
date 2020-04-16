@@ -32,7 +32,5 @@ class HospitalesService {
 }
 
 
-
-
 module.exports = HospitalesService;
 

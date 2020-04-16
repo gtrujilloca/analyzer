@@ -1,17 +1,21 @@
 // const chalk = require('chalk');
 const fs = require('fs');
-const azure = require('./azure');
+const azure = require('./azure-service/azure');
+const Ora = require('ora');
+const chalk = require('chalk');
+const spinner = new Ora();
 
-/**
- *
- */
+
 async function initAutomator() {
   try {
-    console.log('Searching blobs...');
+    spinner.start();
+    spinner.text= `${chalk.red('Conectando a Azure ...')}`
     await azure.initServiceClient();
+    spinner.text= `${chalk.yellow('Buscando Blobs in Azure ...')}`
     await azure.searchJsonBlob();
+    spinner.succeed(`${chalk.green('Busqueda Finalizada')}`);
   } catch (error) {
-    console.log(error);
+    //spinner.failed(`${chalk.red(error)}`);
   }
 }
 

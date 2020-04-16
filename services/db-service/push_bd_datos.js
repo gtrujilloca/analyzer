@@ -1,11 +1,11 @@
 const path = require('path');
-const starProcess = require("./runProcess");
-const generatePdf = require("./generatePdf");
-const {log} = require("./fs");
+const starProcess = require("../system-service/runProcess");
+const generatePdf = require("../report-service/generatePdf");
+const {log} = require("../system-service/fs");
 
 let runProcess = null;
 
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 const ROUTER_UPLOAD_DB_DATOS = process.env.ROUTER_UPLOAD_DB_DATOS;
 
 //singlenton de intancia de funcion para proceso de consola

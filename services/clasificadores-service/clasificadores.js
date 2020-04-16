@@ -1,8 +1,8 @@
-const starProcess = require("./runProcess");
-const { readFilee, checkFiles, log } = require('./fs');
-const { updateJson } = require('./jsonEditFile');
-const push_DB_datos = require("./push_bd_datos.js");
-const uploadToDBToTest = require("./push_bd_test.js");
+const starProcess = require("../system-service/runProcess");
+const { readFilee, checkFiles, log } = require('../system-service/fs');
+const { updateJson } = require('../system-service/jsonEditFile');
+const push_DB_datos = require("../db-service/push_bd_datos");
+const uploadToDBToTest = require("../db-service/push_bd_test");
 
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';

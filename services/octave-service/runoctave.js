@@ -1,12 +1,12 @@
 const fs = require('fs');
 const extname = require('path');
-const {clasificador} = require('./clasificadores');
-const starProcess = require('./runProcess');
-const { readFilee, createFile, deleteFile, log} = require('./fs');
+const {clasificador} = require('../clasificadores-service/clasificadores');
+const starProcess = require('../system-service/runProcess');
+const { readFilee, createFile, deleteFile, log} = require('../system-service/fs');
 let runProcess = null;
 
-const ROUTER_OCTAVE = process.env.ROUTER_OCTAVE || '';
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const ROUTER_OCTAVE = process.env.ROUTER_OCTAVE ;
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {

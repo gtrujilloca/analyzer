@@ -1,18 +1,17 @@
 const extname = require("path");
-const { pushfile, veryBlob, deleteBlob} = require("./azurePush");
-const { updateJson } = require('./jsonEditFile');
-const { readFilee, deleteFolder, copyFilesFinalizados, getListFile, log} = require('./fs');
+const { pushfile, veryBlob, deleteBlob} = require("./azure-service/azurePush");
+const { updateJson } = require('./system-service/jsonEditFile');
+const { readFilee, deleteFolder, copyFilesFinalizados, getListFile, log} = require('./system-service/fs');
 
 
 
-const CONTAINER_NAME_FINALIZADOS = process.env.CONTAINER_NAME_FINALIZADOS || "finalizados";
-const CONTAINER_NAME_FINALIZADOS_BACKUP = process.env.CONTAINER_NAME_FINALIZADOS_BACKUP || "finalizadosbackup";
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const CONTAINER_NAME_FINALIZADOS = process.env.CONTAINER_NAME_FINALIZADOS;
+const CONTAINER_NAME_FINALIZADOS_BACKUP = process.env.CONTAINER_NAME_FINALIZADOS_BACKUP;
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 function filesFisnishProcess(pathPaciente, pathLog) {
-
       console.log(`------- Servicio subir a Azure ------- ${pathPaciente}`);
       const jsonDirectory = `${pathPaciente.dir}/${pathPaciente.base}`;
       if (pathPaciente.ext === ".json") {

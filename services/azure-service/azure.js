@@ -1,16 +1,15 @@
-// const chalk = require('chalk');
 const { BlobServiceClient } = require('@azure/storage-blob');
-const  searchFilesRunOctave  = require('./runoctave');
-
+const  searchFilesRunOctave  = require('../octave-service/runoctave');
 const fs = require('fs');
 const azure = require('azure-storage');
 const extname = require('path');
 const axios = require('axios');
 const blobService = azure.createBlobService();
-const {updateJson} = require('./jsonEditFile');
-const {log} = require('./fs');
-//funciones system file para manejo de archivos
-
+const { updateJson } = require('../system-service/jsonEditFile');
+const { log } = require('../system-service/fs');
+const Ora = require('ora');
+const chalk = require('chalk');
+const spinner = new Ora();
 
 //conexion con azure
 const AZURE_STORAGE_CONNECTION_STRING =
@@ -57,19 +56,59 @@ async function initServiceClientBackup() {
  */
 // Listar blob(s) en el contenedor
 async function searchJsonBlob() {
+  spinner.start();
+  spinner.text= `${chalk.gray('Iniciando busqueda ...')}`
   for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
+    spinner.text= `${chalk.blue('Buscando ...')}`
     if (extname.extname(blob.name) === '.json') {
       //necesito acceder a la url y consultar la informacion de Json
-      console.log(urlAzure + blob.name);
       const dataTestPacient = await axios.get(`${urlAzure}${blob.name}`);
       if (dataTestPacient.data.estado === 1) {
-        await downloadBlobForPath(blob);
+        spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure} ${blob.name}`)}`);
+        await downloadBlobForPath(blob, dataTestPacient.data.files);
         await deletedBlobForPath(blob);
       }
     }
   }
 }
 
+async function downloadBlobForPath(blobFile, numbersFilesContainer) {
+  try {
+    spinner.start();
+    spinner.text= `${chalk.blue('Descargando ...')}`
+    let pathLevels = blobFile.name.split('/');
+    const pathLog = `${pathLevels[0]}/${pathLevels[1]}/${pathLevels[2]}/${pathLevels[2]}.txt`;
+    let filesDownloaded = 0;
+    for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
+      var pathLevelsBlob = blob.name.split('/');
+      if (
+        pathLevelsBlob[0] === pathLevels[0] &&
+        pathLevelsBlob[1] === pathLevels[1] &&
+        pathLevelsBlob[2] === pathLevels[2]
+      ) {
+      if(extname.extname(blob.name) !== '.avi'){
+        filesDownloaded++;
+        spinner.text= `Descargando ... ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
+        await downloadBlob(blob); 
+      }
+      }
+    }
+    spinner.succeed('Descarga finalizada');
+    console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
+    log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
+        console.log(data);
+    });
+    updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
+    searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
+  } catch (error) {
+    var date = new Date();
+    log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Error al descargar Archivos...'+ date).then(data=>{
+        console.log(data);
+        console.log(error);
+    });
+  }
+
+}
 
 // List PDF blob(s) contenedor.
 async function ListPdf() {
@@ -109,40 +148,6 @@ async function searchPdf(Hospital, Pacient) {
   return path;
 }
 
-async function downloadBlobForPath(blobFile) {
-    try {
-      let pathLevels = blobFile.name.split('/');
-      const pathLog = `${pathLevels[0]}/${pathLevels[1]}/${pathLevels[2]}/${pathLevels[2]}.txt`;
-      let filesDownloaded = 0;
-      for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
-        var pathLevelsBlob = blob.name.split('/');
-        if (
-          pathLevelsBlob[0] === pathLevels[0] &&
-          pathLevelsBlob[1] === pathLevels[1] &&
-          pathLevelsBlob[2] === pathLevels[2]
-        ) {
-          if(extname.extname(blob.name) !== '.avi'){
-          filesDownloaded++;
-          console.log(filesDownloaded);
-          await downloadBlob(blob); 
-        }
-        }
-      }
-      console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
-      log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
-          console.log(data);
-      });
-      updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
-      searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
-    } catch (error) {
-      var date = new Date();
-      log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Error al descargar Archivos...'+ date).then(data=>{
-          console.log(data);
-          console.log(error);
-      });
-    }
-
-}
 
 async function downloadBlob(blobFile) {
   try {

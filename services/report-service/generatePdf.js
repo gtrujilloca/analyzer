@@ -1,7 +1,7 @@
-const { readFilee, log } = require('./fs');
 const fs = require('fs');
-const searchFilesPro = require('./filesFisnishProcess');
-const starProcess = require('./runProcess');
+const { readFilee, log } = require('../system-service/fs');
+const searchFilesPro = require('../filesFisnishProcess');
+const starProcess = require('../system-service/runProcess');
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 const ROUTER_GENERATE_PDF = process.env.ROUTER_GENERATE_PDF;

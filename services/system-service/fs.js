@@ -3,10 +3,10 @@ const fs = require('fs');
 const fse = require('fs-extra');
 
 
-const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradabackup';
-const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/entradas';
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
-const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProcesoBackup';
+const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP ;
+const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE ;
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB ;
+const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP ;
 
 
 //recibe un objeto con data del paciente y el comando que se va a guardar
