@@ -14,18 +14,17 @@ const spinner = new Ora();
 //conexion con azure
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
-const urlAzure =
-  'https://externalstorageaccount.blob.core.windows.net/entrada/';
+const urlAzure ='https://externalstorageaccount.blob.core.windows.net/entrada/';
 
-  const urlAzureDownoload =
-  'https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
+const urlAzureDownoload ='https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
+const urlAzureDownoloadFinalizados ='https://externalstorageaccount.blob.core.windows.net/finalizados/';
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
 const CONTAINER_NAME_FINALIZADOS_BACKUP = process.env.CONTAINER_NAME_FINALIZADOS_BACKUP || 'finalizadosbackup'
 let CONTAINER_CLIENT = null;
 let CONTAINER_CLIENT_BACKUP = null;
-
+let CONTAINER_NAME_FINALIZADOS = process.env.CONTAINER_NAME_FINALIZADOS;
 
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
 ROUTER_DOWNLOAD_BLOB_BACKUP = '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProcesoBackup'
@@ -139,13 +138,13 @@ async function downloadPdf(nameHospital, NamePaciente) {
 // Buscar blob(s) PDf en un contenedor.
 async function searchPdf(Hospital, Pacient) {
   console.log('Searching PDF Generados...');
-  const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente${Pacient}.pdf`;
+  const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.pdf`;
   console.log(nameBlobtoSearch);
-  console.log(urlAzureDownoload + nameBlobtoSearch);
+  console.log(urlAzureDownoloadFinalizados + nameBlobtoSearch);
   let path = '';
-  const res = await veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch);
-    if(res) path = urlAzureDownoload+nameBlobtoSearch;
-  return path;
+  const res = await veryBlob(CONTAINER_NAME_FINALIZADOS, nameBlobtoSearch);
+    if(res) path = nameBlobtoSearch;
+return path;
 }
 
 

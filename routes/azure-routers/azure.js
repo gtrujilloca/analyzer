@@ -1,59 +1,45 @@
 const express = require('express');
-const AzureService = require('../services/azure-service/azure');
+const AzureService = require('../../services/azure-service/azure');
 
+function azureApi(app) {
+  const router = express.Router();
+  app.use('/api/azure', router);
 
-function azureApi (app){
-    const router = express.Router();
-    app.use("/api/azure", router);
+  router.get('/', async function(req, res, next) {
+    const { tags } = req.query;
+    console.log(req.query);
+    try {
+      const listPdf = await AzureService.ListPdf();
 
+      res.status(200).json({
+        data: listPdf,
+        message: 'Pdf encontrados '
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 
-    router.get("/", async function(req, res, next){
-        const { tags } = req.query;
-        console.log(req.query);
-        try{
-            const listPdf = await AzureService.ListPdf();
-
-            res.status(200).json({
-                data: listPdf,
-                message: "Pdf encontrados "
-            });
-        }catch(err){
-            next(err);
-        }
-    });
-
-    router.get("/:namehospital/:namepaciente", async function(req, res, next){
-        const { params } = req.params;
-        console.log(req.params);
-        try{
-            const urlPdf = await AzureService.searchPdf(req.params.namehospital, req.params.namepaciente);
-            console.log(urlPdf);
-            res.status(200).json({
-                data: urlPdf,
-                message: "Pdf encontrado"
-            });
-        }catch(err){
-            next(err);
-        }
-    });
-
-
-
-
+  router.get('/:namehospital/:namepaciente', async function(req, res, next) {
+    const { params } = req.params;
+    console.log(req.params);
+    try {
+      const urlPdf = await AzureService.searchPdf(
+        req.params.namehospital,
+        req.params.namepaciente
+      );
+      console.log(urlPdf);
+      res.status(200).json({
+        data: urlPdf,
+        message: 'Pdf encontrado'
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 }
 
-
 module.exports = azureApi;
-
-
-
-
-
-
-
-
-
-
 
 /*
 
