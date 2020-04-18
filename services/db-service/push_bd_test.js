@@ -6,8 +6,7 @@ const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
-const ROUTER_UPLOAD_DB_TEST = process.env.ROUTER_UPLOAD_DB_TEST;
+const {ROUTER_DOWNLOAD_BLOB , ROUTER_UPLOAD_DB_TEST }= process.env;
 
 let runProcess = null;
 
