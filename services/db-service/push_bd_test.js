@@ -2,8 +2,11 @@ const fs = require('fs');
 const { log } = require('../system-service/fs');
 const starProcess = require("../system-service/runProcess");
 
+const Ora = require('ora');
+const chalk = require('chalk');
+const spinner = new Ora();
 
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 const ROUTER_UPLOAD_DB_TEST = process.env.ROUTER_UPLOAD_DB_TEST;
 
 let runProcess = null;
@@ -16,17 +19,19 @@ if (!runProcess) {
 
 
 const uploadToDBToTest = (pathPaciente, pathLog) => {
+  spinner.start();
+  spinner.text= `${chalk.yellow('Iniciando Servicio subir a Bd TEST')}`
   let date = new Date();
   log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Subiendo test y calibraciones a base de datos... ${date}`).then(data=>{
-      console.log(data);
+      
   });
   searchFilesTest(pathPaciente.dir, pathLog);
-
 }
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 const searchFilesTest = (path, pathLog) => {
 try {
+  spinner.text= `${chalk.yellow('Buscando Calibraiones')}`
   fs.readdir(path, (err, files) => {
     if (err)  return console.log(err);
   
@@ -35,22 +40,22 @@ try {
       let stats = fs.statSync(`${path}/${files[i]}`);  
       if (stats.isDirectory()) {
         if (fs.readdirSync(path)[i].substring(1, -1) == 'C') {
-          //console.log("calibracion"+fs.readdirSync(path)[i] );
           calibracion = fs.readdirSync(path)[i];
           break;
         }
       }
     }
-
-
+    spinner.succeed(`${chalk.green('Calibracion encontrada ')} ${calibracion}`)
+    spinner.text= `${chalk.yellow('Buscando Test')}`
     for (let i = 0; i < files.length; i++) {
       let stats = fs.statSync(`${path}/${files[i]}`);
       if (stats.isDirectory()) {
 
         if (fs.readdirSync(path)[i].substring(1, -1) == 'T') {
+          spinner.text= `${chalk.yellow('Test encontrada, Subiando a base de datos')}`
           let command = `cd ${ROUTER_UPLOAD_DB_TEST}; ./qt_mongo_prueba '${path}/${calibracion}' '${path}/${fs.readdirSync(path)[i]}' '${path.split('/')[(path.split('/').length) - 1]}' '${fs.readdirSync(path)[i]}'`;
           runProcess(command).then(data=>{
-            console.log(`Respuesta subida a base de datos Test ${data}`);
+           
           });
         }
       }
@@ -58,13 +63,14 @@ try {
 
     let date = new Date();
     log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Test y Calibraciones Subidas a Base de Datos... ${date}`).then(dataLog=>{
-        console.log(dataLog);
-    });  
+       
+    });
+    spinner.succeed(`${chalk.green('Subida a Bd Test terminada')}`)  
   })
 } catch (error) {
   let date = new Date();
   log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Error al subir test y calibraciones a base de datos...'+ date).then(data=>{
-      console.log(data);
+     
   });
 }
 }

@@ -14,21 +14,21 @@ const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 
 
 
-// try {
-//   console.log(`${chalk.blue('OSCANN ANALYZER Este proceso se ejecutara cada 5 minutos ...')}`);
-//   spinner.start();
-//       //cron.schedule('  */1 * * * *', () => {
-//         spinner.text= `${chalk.blue('Buscando Blobs en Azure ...')}`
-//             spinner.color = 'green';
-//               //runAutomator();
-//               //});
-//             } catch (error) {
-//               console.log("Tarea Detenida");
-//             }
+try {
+  console.log(`${chalk.blue('OSCANN ANALYZER Este proceso se ejecutara cada 5 minutos ...')}`);
+  spinner.start();
+      //cron.schedule('  */1 * * * *', () => {
+        spinner.succeed(`${chalk.blue('Buscando Blobs en Azure ...')}`)
+            spinner.color = 'green';
+              runAutomator();
+        //});
+} catch (error) {
+              console.log("Tarea Detenida");
+}
   
-app.use(bodyParser());
-email(app);
+//app.use(bodyParser());
+//email(app);
 
- app.listen(config.port, function(){
-     console.log(`Listening http://localhost:${config.port}`);
- });
+//  app.listen(config.port, function(){
+//      console.log(`Listening http://localhost:${config.port}`);
+//  });

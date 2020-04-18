@@ -20,6 +20,7 @@ const runCommand = command => {
         response.code = code;
         resolve(response);
       });
+
       process.stderr.on('data', data => reject(data));
     } catch (err) {
       reject(err);

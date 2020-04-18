@@ -5,6 +5,10 @@ const starProcess = require('../system-service/runProcess');
 const { readFilee, createFile, deleteFile, log} = require('../system-service/fs');
 let runProcess = null;
 
+const Ora = require('ora');
+const chalk = require('chalk');
+const spinner = new Ora();
+
 const ROUTER_OCTAVE = process.env.ROUTER_OCTAVE ;
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 
@@ -15,7 +19,8 @@ if (!runProcess) {
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 const searchFilesRunOctave=(path, pathLog) =>{
-  console.log('Run Octave carpeta paciente');
+  spinner.start();
+  spinner.text= `${chalk.yellow('Iniciando servicio Octave')}`
   if (extname.extname(path) === '.json') {
     readFilee(path)
       .then(dataJson => {
@@ -31,7 +36,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
               if (res.code !== 0) {
                 let date = new Date();
                 log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
-                    console.log(data);
+                    
                     console.log('error Al ejecutar comando Sh');
                 });
                 return;
@@ -41,7 +46,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
             .then(file => {
               let date = new Date();
               log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data=>{
-                  console.log(data);
+                  spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
                   searchFilesRunOctaveOld(path, pathLog);
                 });
             })
@@ -61,7 +66,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
 }
 
 const searchFilesRunOctaveOld = (path, pathLog) => {
-  console.log('Run Octave carpeta patologia');
+  spinner.text= `${chalk.yellow('Iniciando servicio Octave patologia')}`
           const pathPaciente = extname.parse(path);
           const commandOctave = `cd ${ROUTER_OCTAVE}; main_automatizado('${extname.dirname(pathPaciente.dir)}')`;
           createFile({ pathPaciente, commandOctave })
@@ -75,8 +80,9 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
             .then(file => {
               let date = new Date();
               log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Proceso Octave Finalizado... ${pathPaciente.name} ${date}`).then(data=>{
-                  console.log(data);
+             
                 });
+                spinner.succeed(`${chalk.green('Proceso octave patologia finalizado')}`);
                 clasificador(pathPaciente, pathLog);
             })
             .catch(err => {

@@ -120,9 +120,10 @@ const  pushFilesAzure = (files, jsonPaciente) => {
         if (extname.extname(blobName) !== '.avi') {
           if (extname.extname(blobName) === '.json') {
             spinner.text= `${chalk.red("Subiendo Archivo Json")}`;
-            await pushfile(CONTAINER_NAME_ENTRADA, {
+            const res = await pushfile(CONTAINER_NAME_ENTRADA, {
               pathFile: file,
               blobName:`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`});
+              console.log(res);
             await pushfile(CONTAINER_NAME_ENTRADABACKUP, {
               pathFile: file,
               blobName:`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`});
@@ -142,10 +143,10 @@ const  pushFilesAzure = (files, jsonPaciente) => {
           spinner.text= `Subiendo ... ${chalk.red(i+1)} de ${chalk.yellow(files.length+1)} `;
         }
         if (i === files.length) {
-          resolve(true);
           if(files.length > 1){
             spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i+1)} de ${chalk.yellow(files.length+1)} `);
           }
+          resolve(true);
         }
       });
     } catch (error) {

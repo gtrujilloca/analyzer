@@ -63,7 +63,7 @@ async function searchJsonBlob() {
       //necesito acceder a la url y consultar la informacion de Json
       const dataTestPacient = await axios.get(`${urlAzure}${blob.name}`);
       if (dataTestPacient.data.estado === 1) {
-        spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure} ${blob.name}`)}`);
+        spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure}${blob.name}`)}`);
         await downloadBlobForPath(blob, dataTestPacient.data.files);
         await deletedBlobForPath(blob);
       }
@@ -74,7 +74,7 @@ async function searchJsonBlob() {
 async function downloadBlobForPath(blobFile, numbersFilesContainer) {
   try {
     spinner.start();
-    spinner.text= `${chalk.blue('Descargando ...')}`
+    spinner.succeed(`${chalk.blue("Descargando...")}`);
     let pathLevels = blobFile.name.split('/');
     const pathLog = `${pathLevels[0]}/${pathLevels[1]}/${pathLevels[2]}/${pathLevels[2]}.txt`;
     let filesDownloaded = 0;
@@ -87,15 +87,14 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer) {
       ) {
       if(extname.extname(blob.name) !== '.avi'){
         filesDownloaded++;
-        spinner.text= `Descargando ... ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
         await downloadBlob(blob); 
       }
-      }
+      spinner.text = `Descargando ${chalk.red(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
     }
-    spinner.succeed('Descarga finalizada');
-    console.log('Downoload Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDownloaded);
+    }
+    spinner.succeed(`Archivos descargados ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`);
     log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
-        console.log(data);
+    
     });
     updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
     searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
@@ -115,7 +114,6 @@ async function ListPdf() {
   await initServiceClientBackup();
   for await (const blob of CONTAINER_CLIENT_BACKUP.listBlobsFlat()) {
     if (extname.extname(blob.name) === '.pdf') {
-          console.log(blob.name);
           pdfArray.push(urlAzureDownoload+blob.name);
       }
     }
@@ -151,12 +149,9 @@ return path;
 async function downloadBlob(blobFile) {
   try {
     if (!fs.existsSync(ROUTER_DOWNLOAD_BLOB)) {
-      console.log(
-        ROUTER_DOWNLOAD_BLOB +
-          'Directorio no existe, Creando...'
-      );
+      spinner.text= `${chalk.red('Directorio no existe, Creando...')}`
       fs.mkdirSync(ROUTER_DOWNLOAD_BLOB);
-      console.log(ROUTER_DOWNLOAD_BLOB + ' created.');
+      spinner.text= `${chalk.green('Directorio creado...')}`
     }
     var pathNew = blobFile.name.split('/');
     var pathgeneral = ROUTER_DOWNLOAD_BLOB;
@@ -322,13 +317,12 @@ function deleteContainer (container, callback) {
 
 async function deletedBlobForPath(blobFile) {
   try {
-    console.log("Deleting Blobs...")
+    spinner.start();
+    spinner.text= `${chalk.blue('Eliminando Blobs...')}`
     var pathLevels = blobFile.name.split('/');
     var filesDeleted = 0;
-    // List the blob(s) in the container.
     for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
       var pathLevelsBlob = blob.name.split('/');
-      //verifico los blobs correspondientes al grupo del json encontrado
       if (
         pathLevelsBlob[0] === pathLevels[0] &&
         pathLevelsBlob[1] === pathLevels[1] &&
@@ -339,10 +333,10 @@ async function deletedBlobForPath(blobFile) {
         if (!response) {
           console.log('deleted blob error');
         }
-        //console.log('download blob success');
       }
     }
-    console.log('Deleted Finish', ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, 'numero de blobs', filesDeleted);     
+    spinner.succeed(`${chalk.red('Blobs eliminados...')} ${filesDeleted}`);
+      
   } catch (error) {
     console.log(error);
   }
@@ -352,9 +346,8 @@ async function deleteBlob(container, blob){
   return new Promise((resolve, reject)=>{
     try {
       blobService.deleteBlobIfExists(container, blob, (err, result) => {
-         if(err) {
-            console.log(err);
-         }
+         if(err) reject(err);
+         
          resolve(result);
       });
     } catch (error) {

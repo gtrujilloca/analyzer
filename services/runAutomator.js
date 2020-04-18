@@ -11,7 +11,7 @@ async function initAutomator() {
     spinner.start();
     spinner.text= `${chalk.red('Conectando a Azure ...')}`
     await azure.initServiceClient();
-    spinner.text= `${chalk.yellow('Buscando Blobs in Azure ...')}`
+    spinner.succeed(`${chalk.yellow('Conectado con Azure ...')}`);
     await azure.searchJsonBlob();
     spinner.succeed(`${chalk.green('Busqueda Finalizada')}`);
   } catch (error) {

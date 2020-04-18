@@ -45,5 +45,26 @@ const updateJsonNumeroArchivos = (path, dataNew) => {
   });
 };
 
+const updateJsonFiles = (path, dataNew) => {
+  return new Promise((resolve, reject) => {
+    try {
+      fs.readFile(path, (err, dataOld) => {
+        
+        if (err) reject(err);
+        let pacienteJson = JSON.parse(dataOld);
+        pacienteJson = dataNew;
+        let data = JSON.stringify(pacienteJson, null, 2);
+    
+        fs.writeFile(path, data, err => {
+          if (err) reject(err);
+          resolve(data);
+        });
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
-module.exports = {updateJson, updateJsonNumeroArchivos};
+
+module.exports = {updateJson, updateJsonNumeroArchivos, updateJsonFiles};
