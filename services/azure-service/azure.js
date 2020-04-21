@@ -247,19 +247,19 @@ function pushfile(containerName, file) {
   return new Promise((resolve, reject) => {
     try {
       blobService.createBlockBlobFromLocalFile(
-        containerName,
-        file.blobName,
-        file.pathFile,
-        function(error, result, response) {
+        containerName, 
+        file.blobName, 
+        file.pathFile, 
+        (error, result, response) => {
           if (!error) {
-            resolve({ res: response.isSuccessful, result: result });
+            resolve({ res: true, result: result });
           } else {
-            reject(error);
+            reject( {res: false, result: error});
           }
         }
       );
     } catch (error) {
-      reject(error);
+      reject( {res: false, result: error});
     }
   });
 }
@@ -364,15 +364,26 @@ function veryBlob(nameContainer,blobName) {
        properties,
        status
      ) {
-       if(!status) reject(false);
-       
-       if (status.isSuccessful) {
-         resolve(true);
-       } else {
+
+       if (err){
          resolve(false);
-       }
+       } 
+       if(status !== null){
+         if(status.hasOwnProperty('statusCode')){
+           if (status.statusCode === 200) {
+             resolve(true);
+           } else {
+             resolve(false);
+           }
+         }else{
+           reject(false);
+         }
+       }else{
+        reject(false);
+      }    
      });
     } catch (error) {
+      console.log("funcion error",error)
       reject(error);
     }
   })

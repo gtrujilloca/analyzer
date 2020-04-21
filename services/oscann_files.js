@@ -2,8 +2,8 @@ const fs = require('fs');
 const extname = require('path');
 const { pushfile, veryBlob, deleteBlob } = require('./azure-service/azure');
 const starProcess = require('./system-service/runProcess');
-const { updateJson, updateJsonNumeroArchivos} = require('./system-service/jsonEditFile');
-const {  readFilee, deleteFolder, copyFiles, getListFile } = require('./system-service/fs');
+const { updateJson, updateJsonNumeroArchivos } = require('./system-service/jsonEditFile');
+const { readFilee, deleteFolder, copyFiles, getListFile } = require('./system-service/fs');
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -11,10 +11,9 @@ const spinner = new Ora();
 
 
 let runProcess = null;
-const ROUTER_OCTAVE = process.env.ROUTER_OCTAVE;
-const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
+const {CONTAINER_NAME_ENTRADA, CONTAINER_NAME_ENTRADABACKUP}= process.env;
 const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
-const CONTAINER_NAME_ENTRADABACKUP = process.env.CONTAINER_NAME_ENTRADABACKUP;
+
 
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
@@ -23,11 +22,11 @@ if (!runProcess) {
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 const searchFilesOscann = (path) => {
-  spinner.text= `${chalk.green('Buscando archivos para subir...')}`;
+  spinner.text = `${chalk.green('Buscando archivos para subir...')}`;
   spinner.start();
   fs.readdir(path, (err, files) => {
     if (err) return console.log(err);
-    
+
     for (let i = 0; i < files.length; i++) {
       let nuevoPath = `${path}/${files[i]}`;
       let stats = fs.statSync(nuevoPath);
@@ -35,125 +34,161 @@ const searchFilesOscann = (path) => {
         searchFilesOscann(nuevoPath);
       } else {
         if (extname.extname(files[i]) === '.json') {
-          readFilee(nuevoPath)
-            .then(jsonData => {
-              if (JSON.parse(jsonData).estado == 0) {
-                updateJson(nuevoPath, 1).then(jsonUpdate => {
-                  spinner.text= `${chalk.blue('Update estado Json =>')} paciente ${JSON.parse(jsonData).Label}`;
-                });
+          readFilee(nuevoPath).then(jsonData => {
+            if (JSON.parse(jsonData).estado == 0) {
+              updateJson(nuevoPath, 1).then(jsonUpdate => {
+                spinner.text = `${chalk.blue('Update estado Json =>')} paciente ${JSON.parse(jsonData).Label}`;
+              }).catch(err => {
+                spinner.fail(`${chalk.red(error)}`);
+              });
 
-                getListFile(path, async (err, filesList) => {
-                  try {
-                    updateJsonNumeroArchivos(nuevoPath, filesList.length).then(jsonUpdate => {
-                      spinner.text= `${chalk.blue('Update estado Json =>')} paciente ${JSON.parse(jsonData).Label}`;
-                    });
-                    const indexJson = filesList.indexOf(nuevoPath);
-                    if (indexJson !== -1) {
-                      const fileJson = filesList.splice(indexJson, 1);
-                      spinner.text= `${chalk.green('Subiendo archivos al servidor')}`;
-                      const response = await pushFilesAzure(
-                        filesList,
-                        JSON.parse(jsonData)
+              getListFile(path, async (err, filesList) => {
+                try {
+                  updateJsonNumeroArchivos(nuevoPath, filesList.length).then(jsonUpdate => {
+                    spinner.text = `${chalk.blue('Update estado Json =>')} paciente ${JSON.parse(jsonData).Label}`;
+                  }).catch(err => {
+                    spinner.fail(`${chalk.red(err)}`);
+                  });
+
+                  const indexJson = filesList.indexOf(nuevoPath);
+                  if (indexJson !== -1) {
+                    const fileJson = filesList.splice(indexJson, 1);
+                    spinner.text = `${chalk.green('Subiendo archivos al servidor')}`;
+                    const response = await pushFilesAzure(
+                      filesList,
+                      JSON.parse(jsonData),
+                      CONTAINER_NAME_ENTRADA
+                    );
+                    spinner.succeed(`${chalk.green('Subida al servidor finalizada =>')} ${response.res}`)
+                    await pushFilesAzure(
+                      filesList,
+                      JSON.parse(jsonData),
+                      CONTAINER_NAME_ENTRADABACKUP
                       );
-                      const datajson = await updateJson(nuevoPath, 1);
-                      const res = await pushFilesAzure(fileJson, JSON.parse(jsonData));
-                      const datajson2 = await updateJson(nuevoPath,-1);
-                      spinner.text= `${chalk.magenta('Realizando backup local')}`;
-                      copyFiles(path)
-                        .then(resCopyfiles => {
-                          if (resCopyfiles.res) {
-                            deleteFolder(path).then(resDeletedFolder => {
-                              if (resDeletedFolder) {
-                                spinner.succeed(`${chalk.green('Backup finalizado correctamente')}`);
-                                spinner.indent = 2;
-                                spinner.succeed(`${chalk.green('Proceso terminado')}`);
-                              } else {
-                                spinner.failed(`Error al eliminar folder`);
-                              }
-                            });
+                      
+                    spinner.succeed(`${chalk.green('Subida al servidor finalizada Backup=>')}`)
+                    spinner.text = `${chalk.green('Haciendo Copia de seguridad en el servidor')}`;
+
+                    const datajson = await updateJson(nuevoPath, 1);
+                    const res = await pushFilesAzure(fileJson, JSON.parse(jsonData), CONTAINER_NAME_ENTRADA);
+                    const datajson2 = await updateJson(nuevoPath, -1);
+                    spinner.text = `${chalk.magenta('Realizando backup local')}`;
+                    copyFiles(path).then(resCopyfiles => {
+                      if (resCopyfiles.res) {
+                        deleteFolder(path).then(resDeletedFolder => {
+                          if (resDeletedFolder) {
+                            spinner.succeed(`${chalk.green('Backup finalizado correctamente')}`);
+                            spinner.indent = 2;
+                            spinner.succeed(`${chalk.green('Proceso terminado')}`);
                           } else {
-                            spinner.failed(`Error al hacer backup ${chalk.red(error)}`);
+                            spinner.failed(`Error al eliminar folder`);
                           }
-                        })
-                        .catch(err => {
-                          spinner.failed(`${chalk.red(error)}`);
+                        }).catch(error => {
+                          spinner.fail(`Error de lista de archivos${chalk.red(error)}`);
                         });
-                    }
-                  } catch (error) {
-                    spinner.failed(`${chalk.red(error)}`);
+                      } else {
+                        spinner.failed(`Error al hacer backup ${chalk.red(error)}`);
+                      }
+                    }).catch(err => {
+                      spinner.fail(`${chalk.red(error)}`);
+                    })
                   }
-                });
-              }
-            })
-            .catch(err => {
-              spinner.failed(`Error al ejecutar el proceso ${chalk.red(err)}`);
-            });
+                } catch (error) {
+                  spinner.fail(`${chalk.red(error)}`);
+                }
+              })
+            }
+          })
         }
       }
+    }
+  })
+}
+
+const pushFilesAzure = (files, jsonPaciente, containerName) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const filesFailedPush = [];
+      let i = 0;
+      files.forEach(async file => {
+        try {
+          const blobName = file.split(`${ROUTER_ENTRY_FILE}/`)[1];
+          const pathNuevo = `${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_`;
+          const jsonName = `${pathNuevo}${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`;
+          const existBlob = await veryBlob(containerName, `${pathNuevo}${blobName}`);
+          if (existBlob) {
+            spinner.text = `${chalk.red("Limpiando servidor")}`;
+            if (extname.extname(blobName) === '.json') {
+              await deleteBlob(
+                containerName,
+                jsonName);
+            } else {
+              await deleteBlob(
+                containerName,
+                `${pathNuevo}${blobName}`);
+            }
+          }
+          if (extname.extname(blobName) !== '.avi') {
+            if (extname.extname(blobName) === '.json') {
+              try {
+                await pushfile(
+                  containerName, {
+                  pathFile: file,
+                  blobName: jsonName
+                });
+              } catch (error) {
+                spinner.fail(`Error ${chalk.red(error.res)} => Json file ${jsonName}`);
+                filesFailedPush.push(jsonName);
+              }
+            } else {
+              try {
+                await pushfile(
+                  containerName, {
+                  pathFile: file,
+                  blobName: `${pathNuevo}${blobName}`
+                })
+              } catch (error) {
+                spinner.fail(`Error ${chalk.red(error.res)} => Subir archivo ${pathNuevo}${blobName}`);
+                filesFailedPush.push(`${pathNuevo}${blobName}`);
+              }
+            }
+          }
+          i++;
+          if (files.length > 1) {
+            spinner.text = `Subiendo ... ${chalk.red(i + 1)} de ${chalk.yellow(files.length + 1)} `;
+          }
+          if (i === files.length) {
+            if (files.length > 1) {
+              spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} `);
+            }
+            resolve({ res: true, filesFailed: filesFailedPush });
+          }
+
+        } catch (error) {
+          spinner.fail(`Error al subir archivo ${chalk.red(error)}`);
+        }
+      });
+    } catch (error) {
+      spinner.fail(`Error al subir archivos ${chalk.red(error)}`);
+      reject({ res: false, filesFailed: filesFailedPush });
     }
   });
 }
 
-const  pushFilesAzure = (files, jsonPaciente) => {
+
+const verifyFilesPushed = (arrayFilesFailded) => {
   return new Promise((resolve, reject) => {
     try {
-      let i = 0;
-      files.forEach(async file => {
-        const blobName = file.split(`${ROUTER_ENTRY_FILE}/`)[1];
-        const existBlob = await veryBlob(CONTAINER_NAME_ENTRADA,`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${blobName}`);
-        if (existBlob) {
-          spinner.text= `${chalk.red("Limpiando archvos en el servdor")}`;
-          if (extname.extname(blobName) === '.json') {
-            await deleteBlob(
-              CONTAINER_NAME_ENTRADA,
-              `${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`);
-            await deleteBlob(
-              CONTAINER_NAME_ENTRADABACKUP,
-              `${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`);
-          } else {
-            await deleteBlob(
-              CONTAINER_NAME_ENTRADA,`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${blobName}`);
-            await deleteBlob(
-              CONTAINER_NAME_ENTRADABACKUP,`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${blobName}`);
-          }
-        }
-        if (extname.extname(blobName) !== '.avi') {
-          if (extname.extname(blobName) === '.json') {
-            spinner.text= `${chalk.red("Subiendo Archivo Json")}`;
-            const res = await pushfile(CONTAINER_NAME_ENTRADA, {
-              pathFile: file,
-              blobName:`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`});
-              console.log(res);
-            await pushfile(CONTAINER_NAME_ENTRADABACKUP, {
-              pathFile: file,
-              blobName:`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}/paciente_${jsonPaciente.Label}.json`});
-          } else {
-            await pushfile(CONTAINER_NAME_ENTRADA, {
-              pathFile: file,
-              blobName:`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${blobName}`
-            });
-            await pushfile(CONTAINER_NAME_ENTRADABACKUP, {
-              pathFile: file,
-              blobName:`${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_${blobName}`
-            });
-          }
-        }
-        i++;
-        if(files.length > 1){
-          spinner.text= `Subiendo ... ${chalk.red(i+1)} de ${chalk.yellow(files.length+1)} `;
-        }
-        if (i === files.length) {
-          if(files.length > 1){
-            spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i+1)} de ${chalk.yellow(files.length+1)} `);
-          }
-          resolve(true);
-        }
-      });
+      console.log('Verificando archvivos')
+      if (arrayFilesFailded.length) {
+        resolve(true);
+      }
+      resolve(false);
+
     } catch (error) {
-      spinner.failed(`Error al subir archivos ${chalk.red(error)}`);
       reject(false);
     }
-  });
+  })
 }
 
 module.exports = searchFilesOscann;

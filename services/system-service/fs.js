@@ -167,12 +167,12 @@ async function copyFilesFinalizados(file) {
 
 //Optengo rutas de un directorio
 function getListFile(dir, done) {
-  var results = [];
+  let results = [];
   fs.readdir(dir, function (err, list) {
     if (err) return done(err);
-    var i = 0;
+    let i = 0;
     (function next() {
-      var file = list[i++];
+      let file = list[i++];
       if (!file) return done(null, results);
       file = `${dir}/${file}`;
       fs.stat(file, function (err2, stat) {
