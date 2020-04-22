@@ -20,7 +20,7 @@ if (!runProcess) {
 
 
 
-const clasificador = (pathPaciente, pathLog) => {
+const clasificadorDiferencial = (pathPaciente, pathLog) => {
   spinner.start();
   spinner.text= `${chalk.yellow('Run Clasificadores')}`
   let jsonpaciente = null;
@@ -45,9 +45,8 @@ const callChecksStudies = async (pathPaciente, paciente, pathLog) => {
       await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${paciente} => ${date}`);
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
       spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`)
-      uploadToDBToTest(pathPaciente, pathLog);
-    const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-    console.log(resPushDatos);
+    push_DB_datos(pathPaciente, pathLog);
+    uploadToDBToTest(pathPaciente, pathLog);
   } catch (error) {
     
   }
@@ -327,4 +326,4 @@ const upDateClasificadorJson = (pathPaciente, paciente) => {
 
 
 
-module.exports = { clasificador, upDateClasificadorJson };
+module.exports = { clasificadorDiferencial, upDateClasificadorJson };

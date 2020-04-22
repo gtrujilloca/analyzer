@@ -7,8 +7,8 @@ const runCommand = command => {
   return new Promise((resolve, reject) => {
     try {
       //creo un comando sh
-      const process = spawn('bash');
       const response = {};
+      const process = spawn('bash');
       //ejecutar el comando
       process.stdin.end(command);
       //ejectuto el comando enviado en consola y guardo la data
@@ -21,9 +21,13 @@ const runCommand = command => {
         resolve(response);
       });
 
-      process.stderr.on('data', data => reject(data));
+      process.stderr.on('data', data => {
+        response.data = data.toString();
+        reject(response);
+      })
     } catch (err) {
-      reject(err);
+      response.data = err;
+      reject(response);
       //console.log(err);
     }
   }).catch(err =>{
