@@ -17,17 +17,19 @@ const runCommand = command => {
       });
       //ejectuto el comando enviado en consola y guardo cuando haya terminado el proceso
       process.on('close', code => {
+        console.log(code)
         response.code = code;
         resolve(response);
       });
 
       process.stderr.on('data', data => {
+        console.log(data.toString())
         response.data = data.toString();
         reject(response);
       })
     } catch (err) {
       response.data = err;
-      console.log(err.toString());
+      response.code = 0;
       reject(response);
     }
   }).catch(err =>{
