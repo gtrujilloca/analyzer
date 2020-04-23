@@ -71,14 +71,14 @@ const searchFilesRunOctave=(path, pathLog) =>{
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
-              if (res.code !== 0) {
-                let date = new Date();
-                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
+              // if (res.code !== 0) {
+              //   let date = new Date();
+              //   log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
                     
-                    console.log('error Al ejecutar comando Sh');
-                });
-                return;
-              }
+              //       console.log('error Al ejecutar comando Sh');
+              //   });
+              //   return;
+              // }
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
             .then(file => {
