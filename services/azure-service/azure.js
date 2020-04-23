@@ -65,7 +65,7 @@ async function searchJsonBlob() {
       if (dataTestPacient.data.estado === 1) {
         spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure}${blob.name}`)}`);
         await downloadBlobForPath(blob, dataTestPacient.data.files);
-        await deletedBlobForPath(blob);
+        //await deletedBlobForPath(blob);
       }
     }
   }
