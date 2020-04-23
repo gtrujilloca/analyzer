@@ -28,10 +28,10 @@ const runCommand = command => {
     } catch (err) {
       response.data = err;
       reject(response);
-      //console.log(err);
+      console.log(err);
     }
   }).catch(err =>{
-    //console.log(err.toString());
+    console.log(err.toString());
   });;
 };
 
