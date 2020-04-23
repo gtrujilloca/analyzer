@@ -53,8 +53,6 @@ function filesFisnishProcess(pathPaciente, pathLog) {
                           console.log(error);
                         }
                       });
-                
-    
                 }
               }).catch(err => {
                 var date = new Date();
@@ -69,9 +67,9 @@ function filesFisnishProcess(pathPaciente, pathLog) {
 }
 
 function pushFilesAzureFinish(files) {
-  spinner.text= `${chalk.yellow(`Subiendo Archvos a Azure`)}`
   return new Promise((resolve, reject) => {
     try {
+      spinner.text= `${chalk.yellow(`Subiendo Archvos a Azure`)}`
       let i = 0;
       files.forEach(async (file) => {
         const blobName = file.split(`${ROUTER_DOWNLOAD_BLOB}/`)[1];
@@ -87,7 +85,6 @@ function pushFilesAzureFinish(files) {
           if(files.length > 1){
             spinner.text= `Subiendo ... ${chalk.red(i+1)} de ${chalk.yellow(files.length+1)} `;
           }
-          console.log(i++, files.length)
           if (i === files.length) {
             if(files.length > 1){
               spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i+1)} de ${chalk.yellow(files.length+1)} `);
@@ -96,7 +93,6 @@ function pushFilesAzureFinish(files) {
           }
       });
     } catch (error) {
-      i++;
       console.log(error);
       reject(false);
     }

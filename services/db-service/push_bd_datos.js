@@ -27,9 +27,11 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
       var command = `cd ${ROUTER_UPLOAD_DB_DATOS}; python ./uploadToDBfromCSV.py '${path.dirname(pathPaciente.dir)}'`;
       //var command = `cd ${ROUTER_UPLOAD_DB_DATOS}; python ./uploadToDBfromCSV.py '${pathPaciente}'`;
       spinner.succeed(`${chalk.blue(command)}`);
-      debugger;
+      //debugger;
       runProcess(command).then(data =>{
+        //debugger;
        if(data){
+         generatePdf(pathPaciente, pathLog);
          resolve(true);
          spinner.succeed(`${chalk.green('Subida de datos a la BD DATOS finalizada ')}`);
        }else{
@@ -37,11 +39,12 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
          spinner.fail(`${chalk.green('Error al subir Coleccion DATOS')}`)
        }
   
-        generatePdf(pathPaciente, pathLog);
       }).catch(err =>{ 
+        //debugger;
           console.log(err);
       });
     } catch (error) {
+      debugger;
       reject(error);
     }
   })

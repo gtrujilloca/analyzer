@@ -46,8 +46,8 @@ const callChecksStudies = async (pathPaciente, paciente, pathLog) => {
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
       spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`)
       uploadToDBToTest(pathPaciente, pathLog);
-    const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-    console.log(resPushDatos);
+      const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+      console.log(resPushDatos);
   } catch (error) {
     
   }
