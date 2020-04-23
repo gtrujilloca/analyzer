@@ -23,7 +23,7 @@ const runCommand = command => {
 
       process.stderr.on('data', data => {
         response.data = data.toString();
-        resolve(response);
+        reject(response);
       })
     } catch (err) {
       response.data = err;
