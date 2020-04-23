@@ -40,7 +40,6 @@ const verifyAnalysisTypesAI = (testJsonData) =>{
       }else{
         resolve({res: false, data: Analysis_types_for_AI_values})
       }
-
     } catch (error) {
       reject(error);
     }
@@ -65,11 +64,11 @@ const searchFilesRunOctave=(path, pathLog) =>{
                commandOctave =`cd ${ROUTER_OCTAVE}; analyzer('${pathPaciente.dir}', [${JSON.parse(dataJson).Pathologies_Studied}])`;
             }
             console.log(commandOctave);
-            createFile({ pathPaciente, commandOctave })
-            .then(file => {
+            //createFile({ pathPaciente, commandOctave })
+            //.then(file => {
               commandRunBashOctave =`octave services/OctaveEjecutables/${pathPaciente.name}.sh`;
-              return runProcess(commandRunBashOctave);
-            })
+               runProcess(commandRunBashOctave)
+            //})
             .then(res => {
               if (res.code !== 0) {
                 let date = new Date();
