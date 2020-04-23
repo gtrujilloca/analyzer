@@ -71,7 +71,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
-              if (res.code !== 0) {
+              if (res) {
                 let date = new Date();
                 log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
                     
