@@ -27,8 +27,8 @@ const runCommand = command => {
       })
     } catch (err) {
       response.data = err;
+      console.log(err.toString());
       reject(response);
-      console.log(err);
     }
   }).catch(err =>{
     console.log(err.toString());
