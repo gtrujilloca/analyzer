@@ -80,22 +80,24 @@ const searchFilesRunOctave=(path, pathLog) =>{
                 });
                 return;
               }
-              return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
+              searchFilesRunOctaveOld(path, pathLog);
+              //return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
-            .then(file => {
-              console.log(file);
-              let date = new Date();
-              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data=>{
-                  spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
-                  searchFilesRunOctaveOld(path, pathLog);
-                });
-            })
-            .catch(err => {
-              console.log(`error eliminar ejecutable  ${err}`);
-            });
+            // .then(file => {
+            //   console.log(file);
+            //   let date = new Date();
+            //   log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data=>{
+            //       spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
+            //       searchFilesRunOctaveOld(path, pathLog);
+            //     });
+            // })
+            // .catch(err => {
+            //   console.log(`error eliminar ejecutable  ${err}`);
+            // });
 
 
-          }).catch(err =>{
+          })
+          .catch(err =>{
 
           })
         }
