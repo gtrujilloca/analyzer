@@ -67,11 +67,12 @@ const searchFilesRunOctave=(path, pathLog) =>{
             console.log(commandOctave);
             createFile({ pathPaciente, commandOctave })
             .then(file => {
+              console.log(file);
               commandRunBashOctave =`octave services/OctaveEjecutables/${pathPaciente.name}.sh`;
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
-              if (res) {
+              if (res.code !== 0) {
                 let date = new Date();
                 log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
                     
@@ -82,6 +83,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
             .then(file => {
+              console.log(file);
               let date = new Date();
               log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data=>{
                   spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
@@ -89,7 +91,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
                 });
             })
             .catch(err => {
-              console.log(`error al ejecutar el proceso Octave PATOLOGIA ${err}`);
+              console.log(`error eliminar ejecutable  ${err}`);
             });
 
 
