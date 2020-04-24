@@ -33,7 +33,7 @@ const runCommand = command => {
       reject(response);
     }
   }).catch(err =>{
-    console.log(err.toString());
+    console.log("error al ejecutar bash", err.toString());
   });;
 };
 

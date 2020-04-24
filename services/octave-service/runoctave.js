@@ -82,9 +82,9 @@ const searchFilesRunOctave=(path, pathLog) =>{
                 return;
               }
               
-              return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
-            })
-            .then(file => {
+              //return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
+            // })
+            // .then(file => {
               console.log(file);
               let date = new Date();
               log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data=>{
