@@ -17,13 +17,13 @@ const runCommand = command => {
       });
       //ejectuto el comando enviado en consola y guardo cuando haya terminado el proceso
       process.on('close', code => {
-        console.log(code)
+        //console.log(code)
         response.code = code;
         resolve(response);
       });
 
       process.stderr.on('data', data => {
-        console.log(data.toString())
+        //console.log(data.toString())
         response.data = data.toString();
         reject(response);
       })
@@ -33,7 +33,7 @@ const runCommand = command => {
       reject(response);
     }
   }).catch(err =>{
-    console.log("error al ejecutar bash", err.toString());
+    console.log("error al ejecutar bash", err);
   });;
 };
 
