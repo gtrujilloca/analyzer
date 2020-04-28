@@ -135,10 +135,7 @@ async function downloadPdf(nameHospital, NamePaciente) {
 
 // Buscar blob(s) PDf en un contenedor.
 async function searchPdf(Hospital, Pacient) {
-  console.log('Searching PDF Generados...');
   const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.pdf`;
-  console.log(nameBlobtoSearch);
-  console.log(urlAzureDownoloadFinalizados + nameBlobtoSearch);
   let path = '';
   const res = await veryBlob(CONTAINER_NAME_FINALIZADOS, nameBlobtoSearch);
     if(res) path = nameBlobtoSearch;

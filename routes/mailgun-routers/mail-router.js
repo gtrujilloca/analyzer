@@ -16,9 +16,9 @@ function email(app) {
       spinner.text = `${chalk.yellow('Conectando con el servidor')}`;
       let { email, hospital , labelPaciente }= req.body;
         const urlPdf = await searchPdf(hospital, labelPaciente);
-        console.log(urlPdf);
         const data = await sendEmail("Reporte test", email, "Reporte test OA", "correo-aura", `https://externalstorageaccount.blob.core.windows.net/finalizados/${urlPdf}`);
         data.rulPdf = `https://externalstorageaccount.blob.core.windows.net/finalizados/${urlPdf}`;
+        spinner.succeed(`${chalk.yellow(data.rulPdf)}`)
         if(!data){
             res.status(500).json({
                 data: data,

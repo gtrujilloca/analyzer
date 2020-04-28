@@ -27,11 +27,11 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
       var command = `cd ${ROUTER_UPLOAD_DB_DATOS}; python ./uploadToDBfromCSV.py '${path.dirname(pathPaciente.dir)}'`;
       //var command = `cd ${ROUTER_UPLOAD_DB_DATOS}; python ./uploadToDBfromCSV.py '${pathPaciente}'`;
       spinner.succeed(`${chalk.blue(command)}`);
-      //debugger;
       runProcess(command).then(data =>{
+        console.log(data);
         //debugger;
        if(data){
-         generatePdf(pathPaciente, pathLog);
+         //generatePdf(pathPaciente, pathLog);
          resolve(true);
          spinner.succeed(`${chalk.green('Subida de datos a la BD DATOS finalizada ')}`);
        }else{

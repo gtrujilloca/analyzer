@@ -8,7 +8,7 @@ let runProcess = null;
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
-
+let estudioDiferenciales = {};
 const ROUTER_OCTAVE = process.env.ROUTER_OCTAVE ;
 const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
 
@@ -47,6 +47,8 @@ const verifyAnalysisTypesAI = (testJsonData) =>{
   })
 }
 
+
+
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 const searchFilesRunOctave=(path, pathLog) =>{
   spinner.start();
@@ -58,6 +60,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
           verifyAnalysisTypesAI(JSON.parse(dataJson)).then(responseAnalysis =>{
             const pathPaciente = extname.parse(path);
             let commandOctave= "";
+            estudioDiferenciales=responseAnalysis;
             console.log(responseAnalysis.data);
             if(responseAnalysis.res){
                commandOctave =`cd ${ROUTER_OCTAVE}; analyzer('${pathPaciente.dir}', [${JSON.parse(dataJson).Pathologies_Studied},${responseAnalysis.data}])`;
@@ -68,24 +71,24 @@ const searchFilesRunOctave=(path, pathLog) =>{
             createFile({ pathPaciente, commandOctave })
             .then(file => {
               console.log(file);
-              commandRunBashOctave =`octave --no-gui services/OctaveEjecutables/${pathPaciente.name}.sh`;
+              commandRunBashOctave =`octave services/OctaveEjecutables/${pathPaciente.name}.sh`;
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
               console.log(res);
-              // if (res.code !== 0) {
-              //   let date = new Date();
-              //   log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
+              if (res.code !== 0) {
+                let date = new Date();
+                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
                     
-              //       console.log('error Al ejecutar comando Sh');
-              //   });
-              //   return;
-              // }
+                    console.log('error Al ejecutar comando Sh');
+                });
+                return;
+              }
               
-              //return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
-            // })
-            // .then(file => {
-              //console.log(file);
+              return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
+            })
+            .then(file => {
+              console.log(file);
               let date = new Date();
               log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data=>{
                   spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
@@ -130,7 +133,8 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
              
                 });
                 spinner.succeed(`${chalk.green('Proceso octave patologia finalizado')}`);
-                clasificador(pathPaciente, pathLog);
+                clasificador(pathPaciente, pathLog, estudioDiferenciales);
+               
             })
             .catch(err => {
               let date = new Date();

@@ -1,6 +1,7 @@
 const starProcess = require("../system-service/runProcess");
 const { readFilee, checkFiles, log } = require('../system-service/fs');
 const { updateJsonFiles } = require('../system-service/jsonEditFile');
+const { clasificadorDiferencial } = require('./clasificador-diferencial');
 const push_DB_datos = require("../db-service/push_bd_datos");
 const uploadToDBToTest = require("../db-service/push_bd_test");
 
@@ -20,13 +21,13 @@ if (!runProcess) {
 
 
 
-const clasificador = (pathPaciente, pathLog) => {
+const clasificador = (pathPaciente, pathLog, estudioDiferenciales) => {
   spinner.start();
   spinner.text= `${chalk.yellow('Run Clasificadores')}`
   let jsonpaciente = null;
   readFilee(`${pathPaciente.dir}/${pathPaciente.base}`).then(data => {
     jsonpaciente = JSON.parse(data.toString());
-    callChecksStudies(pathPaciente, jsonpaciente, pathLog);
+    callChecksStudies(pathPaciente, jsonpaciente, pathLog, estudioDiferenciales);
   }).catch(err => {
     let date = new Date();
     log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al llamar los clasificadores... ${date}`).then(data=>{
@@ -35,7 +36,7 @@ const clasificador = (pathPaciente, pathLog) => {
   });
 }
 
-const callChecksStudies = async (pathPaciente, paciente, pathLog) => {
+const callChecksStudies = async (pathPaciente, paciente, pathLog, estudioDiferenciales) => {
   try {
     spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
     const checkList = await checkEstudies(pathPaciente, paciente, pathLog)
@@ -44,10 +45,11 @@ const callChecksStudies = async (pathPaciente, paciente, pathLog) => {
     let date = new Date();
       await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${paciente} => ${date}`);
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
-      spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`)
-      uploadToDBToTest(pathPaciente, pathLog);
-      const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-      console.log(resPushDatos);
+      spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`);
+      clasificadorDiferencial(pathPaciente, estudioDiferenciales, pathLog)
+      //uploadToDBToTest(pathPaciente, pathLog);
+      //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+      //console.log(resPushDatos);
   } catch (error) {
     
   }
@@ -77,6 +79,7 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
             }).then((data) => {
               let commandClasificadorAD =
                `cd ${ROUTER_CLASIFICADORES}/Clasificador_EA_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
+               console.log(commandClasificadorAD);
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
