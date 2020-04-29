@@ -6,10 +6,13 @@ const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 const email = require('./routes/mailgun-routers/mail-router')
+const azureApi = require('./routes/azure-routers/azure');
+var cors = require('cors') 
 
-  
+app.use(cors())
 app.use(bodyParser());
 email(app);
+azureApi(app);
 
  app.listen(config.port, function(){
       spinner.start();

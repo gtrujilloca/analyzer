@@ -2,7 +2,7 @@
 
  const config = {
    dev: process.env.NODE_ENV !== 'production',
-   port: process.env.PORT || 3000,
+   port: process.env.PORT || 8000,
    azure_string_connection: process.env.AZURE_STORAGE_CONNECTION_STRING
    //azure credenciales
 

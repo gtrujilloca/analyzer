@@ -16,6 +16,7 @@ const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
 const urlAzure ='https://externalstorageaccount.blob.core.windows.net/entrada/';
 
+
 const urlAzureDownoload ='https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
 const urlAzureDownoloadFinalizados ='https://externalstorageaccount.blob.core.windows.net/finalizados/';
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
@@ -114,10 +115,12 @@ async function ListPdf() {
   await initServiceClientBackup();
   for await (const blob of CONTAINER_CLIENT_BACKUP.listBlobsFlat()) {
     if (extname.extname(blob.name) === '.pdf') {
-          pdfArray.push(urlAzureDownoload+blob.name);
+        const hospital = blob.name.split(`/`)[0];
+        const label = blob.name.split(`/`)[1].split(`patologia_`)[1];
+        const JsonName = `${urlAzureDownoload}${hospital}/patologia_${label}/paciente_${label}/paciente_${label}.json`;
+        pdfArray.push({urlPdf: urlAzureDownoload+blob.name,hospital: hospital, label: label, jsonName: JsonName ,fecha: blob.properties.lastModified });
       }
     }
-    console.log(pdfArray);
     return pdfArray;
 }
 
@@ -136,10 +139,15 @@ async function downloadPdf(nameHospital, NamePaciente) {
 // Buscar blob(s) PDf en un contenedor.
 async function searchPdf(Hospital, Pacient) {
   const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.pdf`;
-  let path = '';
+  const nameJson = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.json`;
+  console.log(nameBlobtoSearch);
+  let arrayResponse = {};
   const res = await veryBlob(CONTAINER_NAME_FINALIZADOS, nameBlobtoSearch);
-    if(res) path = nameBlobtoSearch;
-return path;
+    if(res){
+        const dataTestPacient = await axios.get(`${urlAzureDownoload}${nameJson}`);
+        arrayResponse = {data: dataTestPacient.data, urlPdf: `${urlAzureDownoload}${nameBlobtoSearch}`};
+    } 
+  return arrayResponse;
 }
 
 

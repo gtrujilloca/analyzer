@@ -7,7 +7,6 @@ function azureApi(app) {
 
   router.get('/', async function(req, res, next) {
     const { tags } = req.query;
-    console.log(req.query);
     try {
       const listPdf = await AzureService.ListPdf();
 
@@ -20,17 +19,15 @@ function azureApi(app) {
     }
   });
 
-  router.get('/:namehospital/:namepaciente', async function(req, res, next) {
-    const { params } = req.params;
-    console.log(req.params);
+  router.get('/buscar', async function(req, res, next) {
     try {
-      const urlPdf = await AzureService.searchPdf(
-        req.params.namehospital,
-        req.params.namepaciente
+      const resPdf = await AzureService.searchPdf(
+        req.body.hospital,
+        req.body.label
       );
-      console.log(urlPdf);
+      console.log(resPdf);
       res.status(200).json({
-        data: urlPdf,
+        data: resPdf,
         message: 'Pdf encontrado'
       });
     } catch (err) {
