@@ -122,6 +122,7 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
           createFile({ pathPaciente, commandOctave })
             .then(file => {
               commandRunBashOctave =`octave services/OctaveEjecutables/${pathPaciente.name}.sh`;
+              console.log(commandRunBashOctave);
               return runProcess(commandRunBashOctave);
             })
             .then(res => {

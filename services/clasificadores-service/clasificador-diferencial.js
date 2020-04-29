@@ -42,9 +42,12 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
       const res = await upDateDiferencialJson(pathPaciente, paciente, estudioDiferenciales.data);
       console.log("data Json ", res);
       let date = new Date();
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
-        await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
-        spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`)
+      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
+      await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
+      spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
+      //uploadToDBToTest(pathPaciente, pathLog);
+      const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+      //console.log(resPushDatos);
     }else{
       spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
     }

@@ -28,8 +28,6 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
       //var command = `cd ${ROUTER_UPLOAD_DB_DATOS}; python ./uploadToDBfromCSV.py '${pathPaciente}'`;
       spinner.succeed(`${chalk.blue(command)}`);
       runProcess(command).then(data =>{
-        console.log(data);
-        //debugger;
        if(data){
          //generatePdf(pathPaciente, pathLog);
          resolve(true);
@@ -40,11 +38,9 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
        }
   
       }).catch(err =>{ 
-        //debugger;
           console.log(err);
       });
     } catch (error) {
-      debugger;
       reject(error);
     }
   })
