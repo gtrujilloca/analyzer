@@ -75,11 +75,10 @@ const searchFilesRunOctave=(path, pathLog) =>{
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
-              console.log(res);
+              console.log("Proceso Ejecutado"+res);
               if (res.code !== 0) {
                 let date = new Date();
-                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{
-                    
+                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{     
                     console.log('error Al ejecutar comando Sh');
                 });
                 return;
@@ -126,6 +125,7 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
+              console.log("res octave patologia", res)
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
             .then(file => {
@@ -134,7 +134,7 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
              
                 });
                 spinner.succeed(`${chalk.green('Proceso octave patologia finalizado')}`);
-                clasificador(pathPaciente, pathLog, estudioDiferenciales);
+                //clasificador(pathPaciente, pathLog, estudioDiferenciales);
                
             })
             .catch(err => {

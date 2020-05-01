@@ -142,7 +142,8 @@ async function searchPdf(Hospital, Pacient) {
   const nameJson = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.json`;
   console.log(nameBlobtoSearch);
   let arrayResponse = {};
-  const res = await veryBlob(CONTAINER_NAME_FINALIZADOS, nameBlobtoSearch);
+  const res = await veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch);
+  console.log(res);
     if(res){
         const dataTestPacient = await axios.get(`${urlAzureDownoload}${nameJson}`);
         arrayResponse = {data: dataTestPacient.data, urlPdf: `${urlAzureDownoload}${nameBlobtoSearch}`};
@@ -375,6 +376,7 @@ function veryBlob(nameContainer,blobName) {
        } 
        if(status !== null){
          if(status.hasOwnProperty('statusCode')){
+           console.log(status.hasOwnProperty('statusCode'));
            if (status.statusCode === 200) {
              resolve(true);
            } else {

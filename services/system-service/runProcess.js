@@ -13,23 +13,20 @@ const runCommand = command => {
       process.stdin.end(command);
       //ejectuto el comando enviado en consola y guardo la data
       process.stdout.on('data', data => {
-        console.log(data.toString());
         response.data = data.toString();
       });
       //ejectuto el comando enviado en consola y guardo cuando haya terminado el proceso
       process.on('close', code => {
-        console.log(code);
         response.code = code;
         resolve(response);
       });
 
       process.stderr.on('data', data => {
-        console.log(data.toString())
         response.data = data.toString();
         reject(response);
       })
     } catch (err) {
-      console.log(err.toString());
+  
       response.data = err;
       response.code = 0;
       reject(response);
