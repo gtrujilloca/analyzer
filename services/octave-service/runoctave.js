@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const extname = require('path');
 const {clasificador} = require('../clasificadores-service/clasificadores');
@@ -9,8 +10,8 @@ const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 let estudioDiferenciales = {};
-const ROUTER_OCTAVE = process.env.ROUTER_OCTAVE ;
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
+const { ROUTER_OCTAVE, ROUTER_DOWNLOAD_BLOB} = process.env;
+
 
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
@@ -56,6 +57,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
   if (extname.extname(path) === '.json') {
     readFilee(path)
       .then(dataJson => {
+        console.log(JSON.parse(dataJson).estado);
         if (JSON.parse(dataJson).estado == 1) {
           verifyAnalysisTypesAI(JSON.parse(dataJson)).then(responseAnalysis =>{
             const pathPaciente = extname.parse(path);
@@ -70,12 +72,11 @@ const searchFilesRunOctave=(path, pathLog) =>{
             console.log(commandOctave);
             createFile({ pathPaciente, commandOctave })
             .then(file => {
-              console.log(file);
               commandRunBashOctave =`octave services/OctaveEjecutables/${pathPaciente.name}.sh`;
               return runProcess(commandRunBashOctave);
             })
             .then(res => {
-              console.log("Proceso Ejecutado"+res);
+              console.log("Proceso Ejecutado", res);
               if (res.code !== 0) {
                 let date = new Date();
                 log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{     
@@ -118,6 +119,7 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
   spinner.text= `${chalk.yellow('Iniciando servicio Octave patologia')}`
           const pathPaciente = extname.parse(path);
           const commandOctave = `cd ${ROUTER_OCTAVE}; main_automatizado('${extname.dirname(pathPaciente.dir)}')`;
+          console.log(commandOctave);
           createFile({ pathPaciente, commandOctave })
             .then(file => {
               commandRunBashOctave =`octave services/OctaveEjecutables/${pathPaciente.name}.sh`;
