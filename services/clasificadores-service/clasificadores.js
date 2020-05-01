@@ -1,3 +1,4 @@
+require('dotenv').config();
 const starProcess = require("../system-service/runProcess");
 const { readFilee, checkFiles, log } = require('../system-service/fs');
 const { updateJsonFiles } = require('../system-service/jsonEditFile');
@@ -23,7 +24,7 @@ if (!runProcess) {
 
 const clasificador = (pathPaciente, pathLog, estudioDiferenciales) => {
   spinner.start();
-  spinner.text= `${chalk.yellow('Run Clasificadores')}`
+  spinner.text= `${chalk.blue('Servicio de Clasificadores')}`
   let jsonpaciente = null;
   readFilee(`${pathPaciente.dir}/${pathPaciente.base}`).then(data => {
     jsonpaciente = JSON.parse(data.toString());
@@ -32,7 +33,7 @@ const clasificador = (pathPaciente, pathLog, estudioDiferenciales) => {
     let date = new Date();
     log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al llamar los clasificadores... ${date}`).then(data=>{
       });
-      spinner.failed(`${chalk.red('Error',err)}`)
+      spinner.fail(`${chalk.red('Error',err)}`)
   });
 }
 
@@ -47,9 +48,6 @@ const callChecksStudies = async (pathPaciente, paciente, pathLog, estudioDiferen
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
       spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`);
       clasificadorDiferencial(pathPaciente, estudioDiferenciales, pathLog)
-      //uploadToDBToTest(pathPaciente, pathLog);
-      //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-      //console.log(resPushDatos);
   } catch (error) {
     
   }
@@ -59,6 +57,7 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
+      spinner.text= `${chalk.yellow('Ejecutando Clasificadores')}`
       promesasArray = []; 
       const { Pathologies_Studied } = paciente;
       let addCheck = 0;
@@ -79,7 +78,6 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
             }).then((data) => {
               let commandClasificadorAD =
                `cd ${ROUTER_CLASIFICADORES}/Clasificador_EA_vs_control/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
-               console.log(commandClasificadorAD);
               promesasArray.push(runProcess(commandClasificadorAD));
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
@@ -193,6 +191,7 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
 
 const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
   if (checks === pathologies) {
+    spinner.succeed(`${chalk.green('Servicio clasificadores finalizado')}`);
     resolve(dataResolve);
   }
 }
@@ -202,6 +201,7 @@ const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
 const upDateClasificadorJson = (pathPaciente, paciente) => {
   return new Promise((resolve, reject) => {
     try {
+      spinner.text= `${chalk.yellow('Actualizando Json con clasificadores')}`
       promesasArray = [];
       let addCheck = 0;
       for (let pathology of paciente.Pathologies_Studied) {
@@ -220,7 +220,6 @@ const upDateClasificadorJson = (pathPaciente, paciente) => {
                 return -1;
               }
             }).then((data) => {           
-              console.log(parseInt(data));
               paciente.resultados_IA_demencias[0] = parseInt(data);
               addCheck += 1;
               verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
@@ -238,7 +237,7 @@ const upDateClasificadorJson = (pathPaciente, paciente) => {
                 return -1;
               }
             }).then((data) => {
-              console.log(data);
+             
               paciente.resultados_IA_parkinson[0] = parseInt(data);
               addCheck += 1;
               verifyPromises(addCheck, paciente.Pathologies_Studied.length, paciente, resolve);
@@ -320,7 +319,6 @@ const upDateClasificadorJson = (pathPaciente, paciente) => {
             console.log('Sin especificar ' + pathology);
         }
       }
-
     } catch (error) {
       reject(eror);
     }

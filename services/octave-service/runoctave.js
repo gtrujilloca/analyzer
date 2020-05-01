@@ -62,7 +62,6 @@ const searchFilesRunOctave=(path, pathLog) =>{
             const pathPaciente = extname.parse(path);
             let commandOctave= "";
             estudioDiferenciales=responseAnalysis;
-            console.log(responseAnalysis.data);
             if(responseAnalysis.res){
                commandOctave =`cd ${ROUTER_OCTAVE}; analyzer('${pathPaciente.dir}', [${JSON.parse(dataJson).Pathologies_Studied},${responseAnalysis.data}])`;
             }else{
@@ -71,6 +70,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
             spinner.succeed(`${chalk.yellow(commandOctave)}`)
             createFile({ pathPaciente, commandOctave })
             .then(file => {
+              spinner.text= `${chalk.blue('Ejecutando Octave en la carpeta del paciente')}`
               commandRunBashOctave =`octave-cli services/OctaveEjecutables/${pathPaciente.name}.sh`;
               return runProcess(commandRunBashOctave);
             })
@@ -117,9 +117,10 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
   spinner.text= `${chalk.yellow('Iniciando servicio Octave patologia')}`
           const pathPaciente = extname.parse(path);
           const commandOctave = `cd ${ROUTER_OCTAVE}; main_automatizado('${extname.dirname(pathPaciente.dir)}')`;
-          spinner.succeed(`${chalk.green(commandOctave)}`);
+          spinner.succeed(`${chalk.yellow(commandOctave)}`);
           createFile({ pathPaciente, commandOctave })
             .then(file => {
+              spinner.text= `${chalk.blue('Ejecutando Octave en la carpeta de la patologia')}`
               commandRunBashOctave =`octave-cli services/OctaveEjecutables/${pathPaciente.name}.sh`;
               return runProcess(commandRunBashOctave);
             })
@@ -141,7 +142,7 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
              
                 });
                 spinner.succeed(`${chalk.green('Proceso octave patologia finalizado')}`);
-                //clasificador(pathPaciente, pathLog, estudioDiferenciales);
+                clasificador(pathPaciente, pathLog, estudioDiferenciales);
                
             })
             .catch(err => {

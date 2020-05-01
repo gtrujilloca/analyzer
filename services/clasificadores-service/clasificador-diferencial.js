@@ -1,3 +1,4 @@
+require('dotenv').config();
 const starProcess = require("../system-service/runProcess");
 const { readFilee, checkFiles, log } = require('../system-service/fs');
 const { updateJsonFiles } = require('../system-service/jsonEditFile');
@@ -35,19 +36,28 @@ const clasificadorDiferencial = (pathPaciente,estudioDiferenciales ,pathLog) => 
 
 const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, pathLog) => {
   try {
+    console.log(estudioDiferenciales);
     if(estudioDiferenciales.res){
-      spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
-      const checkList = await checkEstudies(pathPaciente, estudioDiferenciales.data, paciente ,pathLog)
-      await Promise.all(checkList);
-      const res = await upDateDiferencialJson(pathPaciente, paciente, estudioDiferenciales.data);
-      console.log("data Json ", res);
-      let date = new Date();
-      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
-      await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
-      spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
-      //uploadToDBToTest(pathPaciente, pathLog);
-      const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+      const veryClassificadores = await veryResClassificadores(paciente);
+      console.log(veryClassificadores);
+      if(veryClassificadores){
+        spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
+        const checkList = await checkEstudies(pathPaciente, estudioDiferenciales.data, paciente ,pathLog)
+        await Promise.all(checkList);
+        const res = await upDateDiferencialJson(pathPaciente, paciente, estudioDiferenciales.data);
+        await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
+        let date = new Date();
+        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
+        spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
+         //uploadToDBToTest(pathPaciente, pathLog);
+      //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
       //console.log(resPushDatos);
+      }else{
+        spinner.fail(`${chalk.red('No hay que ejecutar clasificadores diferenciales')}`)
+         //uploadToDBToTest(pathPaciente, pathLog);
+        //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+        //console.log(resPushDatos);
+      }
     }else{
       spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
     }
@@ -56,10 +66,32 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
   }
 }
 
+
+const veryResClassificadores = (dataJsonPaciente) => {
+  return new Promise ((resolve, reject) =>{
+    try {
+      let response = false;
+      if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1
+        || dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
+        || dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
+        || dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1)
+        {
+              response = true;
+              console.log('si hay que ejecutar');
+        }
+        resolve(response);
+       
+    } catch (error) {
+      reject(error);
+    }
+  })
+}
+
 const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
+      spinner.text= `${chalk.blue('Ejecutando clasificadores diferenciales')}`
       promesasArray = []; 
       const Pathologies_Studied = paciente;
       let addCheck = 0;
@@ -71,7 +103,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             break;
           case 25:
-            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 || dataJsonPaciente.resultados_IA_demencias[1] !== 1){
+            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1){
               checkFiles(pathPaciente, "Estudio_Diferencial_AD_vs_FTD.csv").then(res => {
                 if (res) {
                   return readFilee(`${pathPaciente.dir}/Estudio_Diferencial_AD_vs_FTD.csv`);
@@ -91,7 +123,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             break;
 
           case 29:
-            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 || dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
               checkFiles(pathPaciente, "Estudio_Diferencial_AD_vs_MCI.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Estudio_Diferencial_AD_vs_MCI.csv");
@@ -111,7 +143,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             break;
 
           case 59:
-            if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 || dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+            if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
               //'frontotemporal demental'
               checkFiles(pathPaciente, "Estudio_Diferencial_FTD_vs_MCI.csv").then(res => {
                 if (res) {
@@ -132,7 +164,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             break;
 
           case 310:
-            if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 || dataJsonPaciente.resultados_IA_parkinson[1] !== 1){
+            if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1){
               //Mild Coginitive Imporment'
               checkFiles(pathPaciente, "Estudio_Diferencial_PD_vs_PKS.csv").then(res => {
                 if (res) {
@@ -155,6 +187,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             console.log('Sin especificar ' + pathology);
         }
       });
+      spinner.succeed(`${chalk.green('Fin ciclo')}`);
     } catch (error) {
       reject(eror);
     }
@@ -163,6 +196,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
 
 const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
   if (checks === pathologies) {
+    spinner.succeed(`${chalk.green('Servicio clasificadores diferenciales finalizado')}`);
     resolve(dataResolve);
   }
 }
@@ -172,6 +206,7 @@ const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
 const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => {
   return new Promise((resolve, reject) => {
     try {
+      spinner.text= `${chalk.yellow('Actualizando Json con clasificadores Diferenciales')}`
       promesasArray = [];
       let addCheck = 0;
       for (let pathology of estudioDiferenciales) {
@@ -182,7 +217,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
             break;
 
           case 25:
-            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 || dataJsonPaciente.resultados_IA_demencias[1] !== 1){
+            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1){
               checkFiles(pathPaciente, "Class_Diferencial_EA_vs_DFT.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_EA_vs_DFT.csv");
@@ -201,7 +236,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
             break;
 
           case 29:
-            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 || dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+            if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
               checkFiles(pathPaciente, "Class_Diferencial_EA_vs_DCL.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_EA_vs_DCL.csv");
@@ -221,7 +256,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
             break;
 
           case 59:
-            if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 || dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+            if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
               checkFiles(pathPaciente, "Class_Diferencial_DFT_vs_DCL.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_DFT_vs_DCL.csv");
@@ -240,7 +275,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
             break;
 
           case 310:
-            if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 || dataJsonPaciente.resultados_IA_parkinson[1] !== 1){
+            if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1){
               checkFiles(pathPaciente, "Class_Diferencial_EP_vs_PKS.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_EP_vs_PKS.csv");
