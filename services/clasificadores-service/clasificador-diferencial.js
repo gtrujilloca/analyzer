@@ -49,14 +49,16 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
         let date = new Date();
         await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
         spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
-        uploadToDBToTest(pathPaciente, pathLog);
-        //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-      //console.log(resPushDatos);
+        //const resPushTest = await uploadToDBToTest(pathPaciente, pathLog);
+        //console.log(resPushTest);
+        const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+        console.log(resPushDatos);
       }else{
         spinner.fail(`${chalk.red('No hay que ejecutar clasificadores diferenciales')}`)
-        uploadToDBToTest(pathPaciente, pathLog);
-        //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-        //console.log(resPushDatos);
+        //const resPushTest = await uploadToDBToTest(pathPaciente, pathLog);
+        //console.log(resPushTest);
+        const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+        console.log(resPushDatos);
       }
     }else{
       spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
