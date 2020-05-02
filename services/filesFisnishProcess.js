@@ -37,7 +37,8 @@ function filesFisnishProcess(pathPaciente, pathLog) {
                               if (resCopyfiles.res) {
                                 deleteFolder(path.dir).then(resDeletedFolder => {
                                   if (resDeletedFolder) {
-                                    spinner.succed(`${chalk.green(`Copia de seguridad terminada satisfactoriamente`)}`);
+                                    spinner.succeed(`${chalk.green(`Copia de seguridad terminada satisfactoriamente`)}`);
+                                    spinner.succeed(`${chalk.green(`Proceso terminado satsfactoriamente`)}`);
                                   } else {
                                     console.log("error al eliminar");
                                   }

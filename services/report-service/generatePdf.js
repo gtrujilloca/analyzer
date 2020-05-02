@@ -33,8 +33,13 @@ const generatePdf = (pathPaciente, pathLog) => {
     }).then(dataLog => {
       return veryPdf(pathPaciente.dir, `${ruta[ruta.length - 1]}.pdf`);
     }).then(resVeryPdf => {
-      searchFilesPro(pathPaciente, pathLog);
-      spinner.succeed(`${chalk.green(`PDF Generado ${resVeryPdf}`)}`)
+      console.log(resVeryPdf);
+      if(resVeryPdf){
+        searchFilesPro(pathPaciente, pathLog);
+        spinner.succeed(`${chalk.green(`PDF Generado ${resVeryPdf}`)}`)
+      }else{
+        spinner.fail(`${chalk.red(`PDF no Generado ${resVeryPdf}`)}`)
+      }
       
     }).catch(err => {console.log(err)});
 }
@@ -42,6 +47,7 @@ const generatePdf = (pathPaciente, pathLog) => {
 const veryPdf = (pathFile, nameFile) => {
   spinner.text= `${chalk.yellow('Verificando creacion de PDF')}`
   return new Promise((resolve, reject) => {
+    let vecesVerificadas = 0;
     const verifyPdf = setInterval(() => {
       fs.readdir(pathFile, (err, files) => {
         if (err) reject(err);
@@ -50,6 +56,14 @@ const veryPdf = (pathFile, nameFile) => {
           clearInterval(verifyPdf);
           resolve(true);
         }
+
+        if(vecesVerificadas === 10){
+          clearInterval(verifyPdf);
+          resolve(false);
+        }
+
+        vecesVerificadas++;
+
       });
     }, 5000);
   });
