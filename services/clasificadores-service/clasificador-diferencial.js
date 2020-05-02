@@ -30,7 +30,7 @@ const clasificadorDiferencial = (pathPaciente,estudioDiferenciales ,pathLog) => 
     let date = new Date();
     log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al llamar los clasificadores diferenciales... ${date}`).then(data=>{
       });
-      spinner.failed(`${chalk.red('Error',err)}`)
+      spinner.fail(`${chalk.red('Error',err)}`)
   });
 }
 
@@ -49,12 +49,12 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
         let date = new Date();
         await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
         spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
-         //uploadToDBToTest(pathPaciente, pathLog);
-      //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
+        uploadToDBToTest(pathPaciente, pathLog);
+        //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
       //console.log(resPushDatos);
       }else{
         spinner.fail(`${chalk.red('No hay que ejecutar clasificadores diferenciales')}`)
-         //uploadToDBToTest(pathPaciente, pathLog);
+        uploadToDBToTest(pathPaciente, pathLog);
         //const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
         //console.log(resPushDatos);
       }

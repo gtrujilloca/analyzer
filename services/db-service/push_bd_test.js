@@ -54,7 +54,7 @@ try {
           spinner.text= `${chalk.yellow('Test encontrada, Subiando a base de datos')}`
           let command = `cd ${ROUTER_UPLOAD_DB_TEST}; ./qt_mongo_prueba '${path}/${calibracion}' '${path}/${fs.readdirSync(path)[i]}' '${path.split('/')[(path.split('/').length) - 1]}' '${fs.readdirSync(path)[i]}'`;
           runProcess(command).then(data=>{
-           
+            console.log(data);
           });
         }
       }
