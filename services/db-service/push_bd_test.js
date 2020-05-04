@@ -69,7 +69,6 @@ const searchFilesTest = (path, pathLog) => {
               }' '${path.split('/')[path.split('/').length - 1]}' '${
                 fs.readdirSync(path)[i]
               }'`;
-              console.log(command);
               runProcess(command).then(data => {
                 if (data.code !== 0) {
                   failed++;
