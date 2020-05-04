@@ -24,7 +24,7 @@ const generatePdf = (pathPaciente, pathLog) => {
     .then(data => {
       jsonpaciente = JSON.parse(data.toString());
       let command =
-       `cd ${ROUTER_GENERATE_PDF}; ./qt_pdf_prueba '${ruta[ruta.length - 2]}' '${ruta[ruta.length - 1]}' '${pathPaciente.dir}'`;
+       `cd ${ROUTER_GENERATE_PDF}; ./qt_pdf_prueba '${ruta[ruta.length - 2]}' '${ruta[ruta.length - 1]}' '${pathPaciente.dir}' -platform offscreen`;
        spinner.succeed(`${chalk.blue(command)}`)
       return runProcess(command);
     }).then(dataRunCommand => {
