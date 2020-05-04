@@ -53,7 +53,7 @@ const searchFilesTest = (path, pathLog) => {
           }
         }
         spinner.succeed(
-          `${chalk.green('Calibracion encontrada ')} ${calibracion}`
+          `${chalk.blue('Calibracion encontrada ')} ${calibracion}`
         );
         spinner.text = `${chalk.yellow('Buscando Test')}`;
         let failed = 0;
@@ -82,7 +82,7 @@ const searchFilesTest = (path, pathLog) => {
         }
 
         if (failed === 0) {
-          spinner.succeed(`${chalk.green('Subida a Bd Test terminada')}`);
+          spinner.succeed(`${chalk.green('Subida a Bd Test terminada, '+failed+' archivos fallados')}`);
           resolve(true);
           let date = new Date();
           log(

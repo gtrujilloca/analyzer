@@ -28,15 +28,19 @@ const generatePdf = (pathPaciente, pathLog) => {
        spinner.succeed(`${chalk.blue(command)}`)
       return runProcess(command);
     }).then(dataRunCommand => {
-      let date = new Date();
-      return log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF generado correctamente... ${pathPaciente.dir} \n Subiendo a azure los resultados pdf ... ${date}`);
+      if(dataRunCommand.code === 0){
+        let date = new Date();
+        return log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF generado correctamente... ${pathPaciente.dir} \n Subiendo a azure los resultados pdf ... ${date}`);
+      }else{
+        spinner.fail(`${chalk.red('Error al generar PDF')}`);
+        return;
+      }
     }).then(dataLog => {
       return veryPdf(pathPaciente.dir, `${ruta[ruta.length - 1]}.pdf`);
     }).then(resVeryPdf => {
-      console.log(resVeryPdf);
       if(resVeryPdf){
         searchFilesPro(pathPaciente, pathLog);
-        spinner.succeed(`${chalk.green(`PDF Generado ${resVeryPdf}`)}`)
+        spinner.succeed(`${chalk.green(`PDF Generado`)}`)
       }else{
         spinner.fail(`${chalk.red(`PDF no Generado ${resVeryPdf}`)}`)
       }
@@ -45,20 +49,21 @@ const generatePdf = (pathPaciente, pathLog) => {
 }
 
 const veryPdf = (pathFile, nameFile) => {
-  spinner.text= `${chalk.yellow('Verificando creacion de PDF')}`
   return new Promise((resolve, reject) => {
+    spinner.text= `${chalk.yellow('Verificando creacion de PDF')}`
     let vecesVerificadas = 0;
     const verifyPdf = setInterval(() => {
       fs.readdir(pathFile, (err, files) => {
         if (err) reject(err);
         
         if (files.indexOf(nameFile) > -1) {
+          spinner.succeed(`${chalk.red(`Verificacion finalizada`)}`)
           clearInterval(verifyPdf);
           resolve(true);
         }
 
-        if(vecesVerificadas === 10){
-          clearInterval(verifyPdf);
+        if(vecesVerificadas === 5){
+          spinner.succeed(`${chalk.red(`Verificacion finalizada`)}`)
           resolve(false);
         }
 

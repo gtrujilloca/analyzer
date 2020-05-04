@@ -37,10 +37,8 @@ const clasificadorDiferencial = (pathPaciente,estudioDiferenciales ,pathLog) => 
 
 const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, pathLog) => {
   try {
-    console.log(estudioDiferenciales);
     if(estudioDiferenciales.res){
       const veryClassificadores = await veryResClassificadores(paciente);
-      console.log(veryClassificadores);
       if(veryClassificadores){
         spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
         const checkList = await checkEstudies(pathPaciente, estudioDiferenciales.data, paciente ,pathLog)
@@ -51,15 +49,12 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
         await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
         spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
         const resPushTest = await uploadToDBToTest(pathPaciente, pathLog);
-        console.log(resPushTest);
         const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-        console.log(resPushDatos);
+        generatePdf(pathPaciente, pathLog);
       }else{
         spinner.fail(`${chalk.red('No hay que ejecutar clasificadores diferenciales')}`)
         const resPushTest = await uploadToDBToTest(pathPaciente, pathLog);
-        console.log(resPushTest);
         const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-        console.log(resPushDatos);
         generatePdf(pathPaciente, pathLog);
       }
     }else{

@@ -75,7 +75,6 @@ async function searchJsonBlob() {
 async function downloadBlobForPath(blobFile, numbersFilesContainer) {
   try {
     spinner.start();
-    spinner.succeed(`${chalk.blue("Descargando...")}`);
     let pathLevels = blobFile.name.split('/');
     const pathLog = `${pathLevels[0]}/${pathLevels[1]}/${pathLevels[2]}/${pathLevels[2]}.txt`;
     let filesDownloaded = 0;
@@ -93,7 +92,7 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer) {
       spinner.text = `Descargando ${chalk.red(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
     }
     }
-    spinner.succeed(`Archivos descargados ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`);
+    spinner.succeed(`${chalk.yellow('Descarga finalizada')} - archivos => ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`);
     log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +' \n Carpetas en directorio de descarga creado.\n  Descargando... \n Archivos descargados  ... '+filesDownloaded+"  => "+ date).then(data=>{
     
     });
