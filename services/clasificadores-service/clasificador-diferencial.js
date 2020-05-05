@@ -39,7 +39,9 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
   try {
     if(estudioDiferenciales.res){
       const veryClassificadores = await veryResClassificadores(paciente);
-      if(veryClassificadores){
+      console.log(veryClassificadores)
+      if(veryClassificadores === true){
+        console.log('Clasificadores');
         spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
         const checkList = await checkEstudies(pathPaciente, estudioDiferenciales.data, paciente ,pathLog)
         await Promise.all(checkList);
@@ -69,16 +71,20 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
 const veryResClassificadores = (dataJsonPaciente) => {
   return new Promise ((resolve, reject) =>{
     try {
-      let response = false;
+     
       if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1
+        && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[1] !== -1
         || dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
+        && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1
         || dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
-        || dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1)
+        && dataJsonPaciente.resultados_IA_demencias[1] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1
+        || dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1
+        && dataJsonPaciente.resultados_IA_parkinson[0] !== -1 && dataJsonPaciente.resultados_IA_parkinson[1] !== -1)
         {
-              response = true;
-              console.log('si hay que ejecutar');
+             resolve(true);
+        }else{
+          resolve(false);
         }
-        resolve(response);
        
     } catch (error) {
       reject(error);
@@ -186,7 +192,6 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             console.log('Sin especificar ' + pathology);
         }
       });
-      spinner.succeed(`${chalk.green('Fin ciclo')}`);
     } catch (error) {
       reject(eror);
     }
