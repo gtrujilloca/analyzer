@@ -66,7 +66,7 @@ async function searchJsonBlob() {
       if (dataTestPacient.data.estado === 1) {
         spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure}${blob.name}`)}`);
         await downloadBlobForPath(blob, dataTestPacient.data.files);
-        await deletedBlobForPath(blob);
+        //await deletedBlobForPath(blob);
       }
     }
   }
@@ -375,7 +375,6 @@ function veryBlob(nameContainer,blobName) {
        } 
        if(status !== null){
          if(status.hasOwnProperty('statusCode')){
-           console.log(status.hasOwnProperty('statusCode'));
            if (status.statusCode === 200) {
              resolve(true);
            } else {

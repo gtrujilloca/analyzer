@@ -94,15 +94,15 @@ function pushfile(containerName, file) {
         file.pathFile,
         function(error, result, response) {
           if (!error) {
-            resolve({ res: response.isSuccessful, result: result });
+            resolve({ res: true, result: result });
           } else {
-            reject(error);
+            reject( {res: false, result: error});
           }
         }
       );
     } catch (error) {
       //console.log(error);
-      reject(error);
+      reject( {res: false, result: error});
     }
   });
 }

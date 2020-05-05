@@ -80,8 +80,14 @@ function pushFilesAzureFinish(files) {
               await deleteBlob(CONTAINER_NAME_FINALIZADOS, blobName);
               await deleteBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, blobName); 
           }    
-          await pushfile(CONTAINER_NAME_FINALIZADOS, { pathFile: file, blobName: blobName });
-          await pushfile(CONTAINER_NAME_FINALIZADOS_BACKUP, { pathFile: file, blobName: blobName });
+          const resPush = await pushfile(CONTAINER_NAME_FINALIZADOS, { pathFile: file, blobName: blobName });
+          if(!resPush.res){
+            console.log("fallo al subir");
+          }
+          const resPushBackup = await pushfile(CONTAINER_NAME_FINALIZADOS_BACKUP, { pathFile: file, blobName: blobName });
+          if(!resPushBackup.res){
+            console.log("fallo al subir Backup");
+          }
           i++;
           if(files.length > 1){
             spinner.text= `Subiendo ... ${chalk.red(i+1)} de ${chalk.yellow(files.length+1)} `;
