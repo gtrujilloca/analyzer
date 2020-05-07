@@ -40,10 +40,10 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
     if(estudioDiferenciales.res){
       const veryClassificadores = await veryResClassificadores(paciente);
       console.log(veryClassificadores)
-      if(veryClassificadores === true){
+      if(veryClassificadores.res === true){
         console.log('Clasificadores');
         spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
-        const checkList = await checkEstudies(pathPaciente, estudioDiferenciales.data, paciente ,pathLog)
+        const checkList = await checkEstudies(pathPaciente, veryClassificadores.data, paciente ,pathLog)
         await Promise.all(checkList);
         console.log('Diferenciales ejecutados');
         const res = await upDateDiferencialJson(pathPaciente, paciente, estudioDiferenciales.data);
@@ -73,19 +73,28 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
 const veryResClassificadores = (dataJsonPaciente) => {
   return new Promise ((resolve, reject) =>{
     try {
-     
+      let arrayDiferencialesejecutar = [];  
       if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1
-        && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[1] !== -1
-        || dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
-        && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1
-        || dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
-        && dataJsonPaciente.resultados_IA_demencias[1] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1
-        || dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1
-        && dataJsonPaciente.resultados_IA_parkinson[0] !== -1 && dataJsonPaciente.resultados_IA_parkinson[1] !== -1)
-        {
-             resolve(true);
+        && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[1] !== -1){
+          arrayDiferencialesejecutar.push("25");
+        }
+        if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
+        && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1){
+          arrayDiferencialesejecutar.push("29");
+        }
+        if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
+        && dataJsonPaciente.resultados_IA_demencias[1] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1){
+          arrayDiferencialesejecutar.push("59");
+        }
+        if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1
+        && dataJsonPaciente.resultados_IA_parkinson[0] !== -1 && dataJsonPaciente.resultados_IA_parkinson[1] !== -1){
+          arrayDiferencialesejecutar.push("310");
+        }
+        console.log(arrayDiferencialesejecutar);
+        if(arrayDiferencialesejecutar){
+             resolve({res: true, data: arrayDiferencialesejecutar});
         }else{
-          resolve(false);
+          resolve({res: false, data: arrayDiferencialesejecutar});
         }
        
     } catch (error) {
@@ -100,6 +109,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
     try {
       spinner.text= `${chalk.blue('Ejecutando clasificadores diferenciales')}`
       promesasArray = []; 
+      console.log(paciente);
       const Pathologies_Studied = paciente;
       let addCheck = 0;
       Pathologies_Studied.forEach((pathology) => {
