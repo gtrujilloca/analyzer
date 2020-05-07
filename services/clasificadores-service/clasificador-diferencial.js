@@ -91,7 +91,7 @@ const veryResClassificadores = (dataJsonPaciente) => {
           arrayDiferencialesejecutar.push(310);
         }
         console.log(arrayDiferencialesejecutar);
-        if(arrayDiferencialesejecutar){
+        if(arrayDiferencialesejecutar.length !== 0){
              resolve({res: true, data: arrayDiferencialesejecutar});
         }else{
           resolve({res: false, data: arrayDiferencialesejecutar});
