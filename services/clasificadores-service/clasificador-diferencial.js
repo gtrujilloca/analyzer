@@ -254,7 +254,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
               }).then((data) => {           
                 paciente.resultados_IA_demencias[3] = parseInt(data);
                 addCheck += 1;
-                verifyPromises(addCheck, estudioDiferenciales.length, paciente, resolve);
+                verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
                 console.log(err);
               });
@@ -275,7 +275,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
     
                 paciente.resultados_IA_demencias[4] = parseInt(data);
                 addCheck += 1;
-                verifyPromises(addCheck, estudioDiferenciales.length, paciente, resolve);
+                verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
                 //console.log(err);
               });
@@ -295,7 +295,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
               }).then((data) => {
                 paciente.resultados_IA_demencias[5] = parseInt(data);
                 addCheck += 1;
-                verifyPromises(addCheck, estudioDiferenciales.length, paciente, resolve);
+                verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
                 // console.log(err);
               });
@@ -315,7 +315,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
               }).then((data) => {
                 paciente.resultados_IA_parkinson[2] = parseInt(data);
                 addCheck += 1;
-                verifyPromises(addCheck, estudioDiferenciales.length, paciente, resolve);
+                verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
                 //console.log(err);
               });
