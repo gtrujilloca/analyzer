@@ -41,7 +41,7 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
       const veryClassificadores = await veryResClassificadores(paciente);
       console.log(veryClassificadores)
       if(veryClassificadores.res === true){
-        console.log('Clasificadores');
+        console.log('Clasificadores diferenciales');
         spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
         const checkList = await checkEstudies(pathPaciente, veryClassificadores.data, paciente ,pathLog)
         await Promise.all(checkList);
@@ -76,19 +76,19 @@ const veryResClassificadores = (dataJsonPaciente) => {
       let arrayDiferencialesejecutar = [];  
       if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1
         && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[1] !== -1){
-          arrayDiferencialesejecutar.push("25");
+          arrayDiferencialesejecutar.push(25);
         }
         if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
         && dataJsonPaciente.resultados_IA_demencias[0] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1){
-          arrayDiferencialesejecutar.push("29");
+          arrayDiferencialesejecutar.push(29);
         }
         if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1
         && dataJsonPaciente.resultados_IA_demencias[1] !== -1 && dataJsonPaciente.resultados_IA_demencias[2] !== -1){
-          arrayDiferencialesejecutar.push("59");
+          arrayDiferencialesejecutar.push(59);
         }
         if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1
         && dataJsonPaciente.resultados_IA_parkinson[0] !== -1 && dataJsonPaciente.resultados_IA_parkinson[1] !== -1){
-          arrayDiferencialesejecutar.push("310");
+          arrayDiferencialesejecutar.push(310);
         }
         console.log(arrayDiferencialesejecutar);
         if(arrayDiferencialesejecutar){
