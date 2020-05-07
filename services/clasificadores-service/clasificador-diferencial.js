@@ -233,6 +233,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
       console.log("actualizando Json");
       promesasArray = [];
       let addCheck = 0;
+      console.log(estudioDiferenciales)
       for (let pathology of estudioDiferenciales) {
         switch (pathology) {
           case 1:
@@ -242,6 +243,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
 
           case 25:
             if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1){
+              console.log("25");
               checkFiles(pathPaciente, "Class_Diferencial_EA_vs_DFT.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_EA_vs_DFT.csv");
@@ -261,6 +263,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
 
           case 29:
             if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+              console.log("29");
               checkFiles(pathPaciente, "Class_Diferencial_EA_vs_DCL.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_EA_vs_DCL.csv");
@@ -281,6 +284,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
 
           case 59:
             if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+              console.log("59");
               checkFiles(pathPaciente, "Class_Diferencial_DFT_vs_DCL.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_DFT_vs_DCL.csv");
@@ -300,6 +304,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
 
           case 310:
             if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1){
+              console.log("310");
               checkFiles(pathPaciente, "Class_Diferencial_EP_vs_PKS.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Class_Diferencial_EP_vs_PKS.csv");
