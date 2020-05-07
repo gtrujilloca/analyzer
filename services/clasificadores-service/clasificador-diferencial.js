@@ -218,6 +218,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
 
 const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
   console.log('verifique ', checks , pathologies);
+  console.log(dataResolve);
   if (checks === pathologies) {
     spinner.succeed(`${chalk.green('Servicio clasificadores diferenciales finalizado')}`);
     resolve(dataResolve);
@@ -296,7 +297,6 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
               }).then((data) => {
                 console.log(parseInt(data));        
                 dataJsonPaciente.resultados_IA_demencias[5] = parseInt(data);
-                console.log(dataJsonPaciente);
                 addCheck += 1;
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
