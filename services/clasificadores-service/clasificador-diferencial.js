@@ -226,7 +226,7 @@ const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
 
 
 
-const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => {
+const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferenciales) => {
   return new Promise((resolve, reject) => {
     try {
       spinner.text= `${chalk.yellow('Actualizando Json con clasificadores Diferenciales')}`
