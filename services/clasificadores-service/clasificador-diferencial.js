@@ -251,7 +251,8 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                   console.log("Archivo Estudio EA_vs_DFT no encontrado");
                   return -1;
                 }
-              }).then((data) => {           
+              }).then((data) => {  
+                console.log(data);         
                 dataJsonPaciente.resultados_IA_demencias[3] = parseInt(data);
                 addCheck += 1;
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
@@ -272,7 +273,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                   return -1;
                 }
               }).then((data) => {
-    
+                console.log(data);         
                 paciente.resultados_IA_demencias[4] = parseInt(data);
                 addCheck += 1;
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
@@ -293,6 +294,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                   return -1;
                 }
               }).then((data) => {
+                console.log(data);         
                 dataJsonPaciente.resultados_IA_demencias[5] = parseInt(data);
                 addCheck += 1;
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
@@ -313,6 +315,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                   return -1;
                 }
               }).then((data) => {
+                console.log(data);         
                 dataJsonPaciente.resultados_IA_parkinson[2] = parseInt(data);
                 addCheck += 1;
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
