@@ -256,7 +256,9 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));         
                 dataJsonPaciente.resultados_IA_demencias[3] = parseInt(data);
                 addCheck += 1;
+                console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
+                onsole.log("fin");
               }).catch(err => {
                 console.log(err);
               });
@@ -277,9 +279,11 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));          
                 paciente.resultados_IA_demencias[4] = parseInt(data);
                 addCheck += 1;
+                console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
+                onsole.log("fin");
               }).catch(err => {
-                //console.log(err);
+                console.log(err);
               });
             }
             break;
@@ -298,9 +302,11 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));        
                 dataJsonPaciente.resultados_IA_demencias[5] = parseInt(data);
                 addCheck += 1;
+                console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
+                console.log("fin");
               }).catch(err => {
-                // console.log(err);
+                console.log(err);
               });
             }
             break;
@@ -319,6 +325,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));           
                 dataJsonPaciente.resultados_IA_parkinson[2] = parseInt(data);
                 addCheck += 1;
+                console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
                 //console.log(err);
