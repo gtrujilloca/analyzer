@@ -109,6 +109,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
             break;
           case 25:
             if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[1] !== 1){
+              console.log("25");
               checkFiles(pathPaciente, "Estudio_Diferencial_AD_vs_FTD.csv").then(res => {
                 if (res) {
                   return readFilee(`${pathPaciente.dir}/Estudio_Diferencial_AD_vs_FTD.csv`);
@@ -118,6 +119,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
               }).then((data) => {
                 let commandClasificadorAD =
                  `cd ${ROUTER_CLASIFICADORES_DIFERENCIALES}/Clasificador_diferencial_EA_vs_DFT/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
+                 console.log(commandClasificadorAD);
                 promesasArray.push(runProcess(commandClasificadorAD));
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
@@ -129,6 +131,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
 
           case 29:
             if(dataJsonPaciente.resultados_IA_demencias[0] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
+              console.log("29")
               checkFiles(pathPaciente, "Estudio_Diferencial_AD_vs_MCI.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Estudio_Diferencial_AD_vs_MCI.csv");
@@ -138,6 +141,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
               }).then((data) => {
                 let commandClasificadorPD = 
                 `cd ${ROUTER_CLASIFICADORES_DIFERENCIALES}/Clasificador_diferencial_EA_vs_DCL/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
+                console.log(commandClasificadorAD);
                 promesasArray.push(runProcess(commandClasificadorPD));
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
@@ -149,7 +153,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
 
           case 59:
             if(dataJsonPaciente.resultados_IA_demencias[1] !== 1 && dataJsonPaciente.resultados_IA_demencias[2] !== 1){
-              //'frontotemporal demental'
+              console.log("59")
               checkFiles(pathPaciente, "Estudio_Diferencial_FTD_vs_MCI.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Estudio_Diferencial_FTD_vs_MCI.csv");
@@ -159,6 +163,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
               }).then((data) => {
                 let commandClasificadorAD = 
                 `cd ${ROUTER_CLASIFICADORES_DIFERENCIALES}/Clasificador_diferencial_DFT_vs_DCL/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
+                console.log(commandClasificadorAD);
                 promesasArray.push(runProcess(commandClasificadorAD));
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);    
@@ -170,7 +175,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
 
           case 310:
             if(dataJsonPaciente.resultados_IA_parkinson[0] !== 1 && dataJsonPaciente.resultados_IA_parkinson[1] !== 1){
-              //Mild Coginitive Imporment'
+              console.log("310")
               checkFiles(pathPaciente, "Estudio_Diferencial_PD_vs_PKS.csv").then(res => {
                 if (res) {
                   return readFilee(pathPaciente.dir + "/Estudio_Diferencial_PD_vs_PKS.csv");
@@ -180,6 +185,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
               }).then((data) => {
                 let commandClasificadorAD = 
                 `cd ${ROUTER_CLASIFICADORES_DIFERENCIALES}/Clasificador_diferencial_EP_vs_PKS/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
+                console.log(commandClasificadorAD);
                 promesasArray.push(runProcess(commandClasificadorAD));
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
