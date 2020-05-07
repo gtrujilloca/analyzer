@@ -230,6 +230,7 @@ const upDateDiferencialJson = (pathPaciente, paciente, estudioDiferenciales) => 
   return new Promise((resolve, reject) => {
     try {
       spinner.text= `${chalk.yellow('Actualizando Json con clasificadores Diferenciales')}`
+      console.log("actualizando Json");
       promesasArray = [];
       let addCheck = 0;
       for (let pathology of estudioDiferenciales) {
