@@ -45,8 +45,10 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
         spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
         const checkList = await checkEstudies(pathPaciente, estudioDiferenciales.data, paciente ,pathLog)
         await Promise.all(checkList);
+        console.log('Diferenciales ejecutados');
         const res = await upDateDiferencialJson(pathPaciente, paciente, estudioDiferenciales.data);
         await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
+        console.log('Json actualizado ');
         let date = new Date();
         await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
         spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
