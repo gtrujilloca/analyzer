@@ -296,6 +296,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
               }).then((data) => {
                 console.log(parseInt(data));        
                 dataJsonPaciente.resultados_IA_demencias[5] = parseInt(data);
+                console.log(dataJsonPaciente);
                 addCheck += 1;
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
