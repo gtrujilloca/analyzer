@@ -16,11 +16,11 @@ const pathEntrada = process.env.ROUTER_ENTRY_FILE;
 try {  
   console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada 2 minutos ...')}`);
   spinner.start();
-      //cron.schedule('  */2 * * * *', () => {
+      cron.schedule('  */2 * * * *', () => {
         spinner.text= `${chalk.yellow('Buscando archivos para subir al servidor ...')}`
           searchFilesOscann(pathEntrada);
           spinner.succeed(`${chalk.yellow('Busqueda finalizada...')}`);
-     //});
+     });
 } catch (error) {
   console.log("Tarea Detenida");
 }
