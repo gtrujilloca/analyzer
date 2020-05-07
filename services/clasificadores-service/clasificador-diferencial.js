@@ -46,7 +46,7 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
         const checkList = await checkEstudies(pathPaciente, veryClassificadores.data, paciente ,pathLog)
         await Promise.all(checkList);
         console.log('Diferenciales ejecutados');
-        const res = await upDateDiferencialJson(pathPaciente, paciente, estudioDiferenciales.data);
+        const res = await upDateDiferencialJson(pathPaciente, paciente, veryClassificadores.data);
         await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
         console.log('Json actualizado ');
         let date = new Date();
