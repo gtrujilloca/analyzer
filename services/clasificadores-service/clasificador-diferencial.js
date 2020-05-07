@@ -258,7 +258,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 addCheck += 1;
                 console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
-                onsole.log("fin");
+                console.log("fin");
               }).catch(err => {
                 console.log(err);
               });
@@ -281,7 +281,7 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 addCheck += 1;
                 console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
-                onsole.log("fin");
+                console.log("fin");
               }).catch(err => {
                 console.log(err);
               });
