@@ -143,7 +143,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
               }).then((data) => {
                 let commandClasificadorPD = 
                 `cd ${ROUTER_CLASIFICADORES_DIFERENCIALES}/Clasificador_diferencial_EA_vs_DCL/src && ./main ${pathPaciente.dir} ${data.toString().replace(/,/g, " ")}`;
-                console.log(commandClasificadorAD);
+                console.log(commandClasificadorPD);
                 promesasArray.push(runProcess(commandClasificadorPD));
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
@@ -207,6 +207,7 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
 }
 
 const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
+  console.log('verifique ', checks , pathologies);
   if (checks === pathologies) {
     spinner.succeed(`${chalk.green('Servicio clasificadores diferenciales finalizado')}`);
     resolve(dataResolve);
