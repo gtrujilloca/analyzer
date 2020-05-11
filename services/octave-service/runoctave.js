@@ -86,11 +86,11 @@ const searchFilesRunOctave=(path, pathLog) =>{
               }
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
-            .then(async file => {
+            .then(file => {
               let date = new Date();
-              await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date)
+              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data =>{})
               spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
-                searchFilesRunOctaveOld(path, pathLog);
+              searchFilesRunOctaveOld(path, pathLog);
             })
             .catch(err => {
               console.log(`error Ejecutar ${err}`);
@@ -135,9 +135,9 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
               }
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
-            .then(async file => {
+            .then(file => {
               let date = new Date();
-              await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Proceso Octave Finalizado... ${pathPaciente.name} ${date} => OK`)
+              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Proceso Octave Finalizado... ${pathPaciente.name} ${date} => OK`).then(data => {});
               spinner.succeed(`${chalk.green('Proceso octave finalizado => OK')}`);
               clasificador(pathPaciente, pathLog, estudioDiferenciales);
                
