@@ -16,12 +16,12 @@ const spinner = new Ora();
 try {
   console.log(`${chalk.blue('OSCANN ANALYZER Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
-     cron.schedule('  */1 * * * *', () => {
+     //cron.schedule('  */1 * * * *', () => {
         spinner.succeed(`${chalk.blue('Buscando Blobs en Azure ...')}`)
             spinner.color = 'green';
               runAutomator();
               //searchFilesRunOctave(`${path}/${jsonName}`, path); 
-      });
+      //});
 } catch (error) {
               console.log("Tarea Detenida");
 }
