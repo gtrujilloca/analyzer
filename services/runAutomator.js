@@ -18,6 +18,6 @@ async function initAutomator() {
     //spinner.failed(`${chalk.red(error)}`);
   }
 }
-
+//V013GDAURA
 
 module.exports = initAutomator;

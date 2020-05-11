@@ -137,17 +137,21 @@ async function downloadPdf(nameHospital, NamePaciente) {
 
 // Buscar blob(s) PDf en un contenedor.
 async function searchPdf(Hospital, Pacient) {
-  const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.pdf`;
-  const nameJson = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.json`;
-  console.log(nameBlobtoSearch);
-  let arrayResponse = {};
-  const res = await veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch);
-  console.log(res);
-    if(res){
-        const dataTestPacient = await axios.get(`${urlAzureDownoload}${nameJson}`);
-        arrayResponse = {data: dataTestPacient.data, urlPdf: `${urlAzureDownoload}${nameBlobtoSearch}`};
-    } 
-  return arrayResponse;
+  try {    
+    const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.pdf`;
+    const nameJson = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.json`;
+    console.log(nameBlobtoSearch);
+    let arrayResponse = {};
+    const res = await veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch);
+    console.log(res);
+      if(res){
+          const dataTestPacient = await axios.get(`${urlAzureDownoload}${nameJson}`);
+          arrayResponse = {data: dataTestPacient.data, urlPdf: `${urlAzureDownoload}${nameBlobtoSearch}`};
+      } 
+    return arrayResponse;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 

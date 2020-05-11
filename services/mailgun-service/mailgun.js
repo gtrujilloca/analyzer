@@ -1,4 +1,5 @@
 const Mailgun = require("mailgun-js");
+const config = require('../../config/index');
 const {DOMAIN_MAIL , API_KEY_MAIL, FROM_EMAIL} = process.env;
 
 let mailgun = null;
