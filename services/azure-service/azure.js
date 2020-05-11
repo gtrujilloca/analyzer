@@ -93,7 +93,7 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer) {
     }
     }
     spinner.succeed(`${chalk.yellow('Descarga finalizada')} - archivos => ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`);
-    await log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +'\n Archivos descargados... '+filesDownloaded+" "+ date + " => OK");
+    await log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +'\n Archivos descargados... '+filesDownloaded+"s "+ date + " => OK");
     await updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
     searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
   } catch (error) {

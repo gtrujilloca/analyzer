@@ -38,11 +38,11 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
           resolve(false);
         }
       }).catch(err =>{ 
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`);
+        log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`).then(data=>{});
         console.log(err);
       });
     } catch (error) {
-      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`);
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`).then(data=>{});
       reject(error);
     }
   })
