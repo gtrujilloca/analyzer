@@ -1,7 +1,6 @@
 const path = require('path');
 const starProcess = require("../system-service/runProcess");
-
-//const {log} = require("../system-service/fs");
+const {log} = require("../system-service/fs");
 
 const Ora = require('ora');
 const chalk = require('chalk');
