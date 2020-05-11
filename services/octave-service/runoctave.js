@@ -67,6 +67,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
             }else{
                commandOctave =`cd ${ROUTER_OCTAVE}; analyzer('${pathPaciente.dir}', [${JSON.parse(dataJson).Pathologies_Studied}])`;
             }
+            console.log(commandOctave);
             spinner.succeed(`${chalk.yellow(commandOctave)}`)
             createFile({ pathPaciente, commandOctave })
             .then(file => {
