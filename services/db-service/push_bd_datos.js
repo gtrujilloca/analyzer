@@ -1,3 +1,4 @@
+require('dotenv').config();
 const path = require('path');
 const starProcess = require("../system-service/runProcess");
 const {log} = require("../system-service/fs");
@@ -9,7 +10,7 @@ const spinner = new Ora();
 let runProcess = null;
 
 //const ROUTER_UPLOAD_DB_DATOS='/Users/johnalexandergaleano/Documents/aura';
-const { ROUTER_UPLOAD_DB_DATOS} = process.env;
+const { ROUTER_UPLOAD_DB_DATOS, ROUTER_DOWNLOAD_BLOB} = process.env;
 
 
 //singlenton de intancia de funcion para proceso de consola

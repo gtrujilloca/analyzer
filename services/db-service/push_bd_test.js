@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const { log } = require('../system-service/fs');
 const starProcess = require('../system-service/runProcess');
