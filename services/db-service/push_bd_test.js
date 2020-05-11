@@ -21,14 +21,16 @@ const uploadToDBToTest = (pathPaciente, pathLog)  => {
       spinner.start();
       spinner.text = `${chalk.yellow('Iniciando Servicio subir a Bd TEST')}`;
       let date = new Date();
-      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Subiendo test y calibraciones a base de datos... ${date}`);
       const res = await searchFilesTest(pathPaciente.dir, pathLog);
       if(res){
+        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Test y calibraciones subidas a base de datos... ${date} => OK`);
         resolve(true);
       }else{
+        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir test y calibraciones a base de datos... ${date} => ERROR`);
         resolve(false);
       }
     } catch (error) {
+      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir test y calibraciones a base de datos... ${date} ${error}=> ERROR`);
       reject(error);
     }
   })
@@ -52,9 +54,7 @@ const searchFilesTest = (path, pathLog) => {
             }
           }
         }
-        spinner.succeed(
-          `${chalk.blue('Calibracion encontrada ')} ${calibracion}`
-        );
+        spinner.succeed(`${chalk.blue('Calibracion encontrada ')} ${calibracion}`);
         spinner.text = `${chalk.yellow('Buscando Test')}`;
         let failed = 0;
         for (let i = 0; i < files.length; i++) {
@@ -84,14 +84,9 @@ const searchFilesTest = (path, pathLog) => {
         if (failed === 0) {
           spinner.succeed(`${chalk.green('Subida a Bd Test terminada, '+failed+' archivos fallados')}`);
           resolve(true);
-          let date = new Date();
-          log(
-            `${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,
-            `Test y Calibraciones Subidas a Base de Datos... ${date}`
-          ).then(dataLog => {});
         } else {
-          resolve(false);
           spinner.fail(`${chalk.red('Faltan test por subir a la base datos')}`);
+          resolve(false);
         }
       });
     } catch (error) {
@@ -99,7 +94,7 @@ const searchFilesTest = (path, pathLog) => {
       let date = new Date();
       log(
         `${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,
-        'Error al subir test y calibraciones a base de datos...' + date
+        'Error al subir test y calibraciones a base de datos...' + date + ' => ERROR'
       ).then(data => {});
     }
   });

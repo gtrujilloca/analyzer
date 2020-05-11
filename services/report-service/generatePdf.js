@@ -30,22 +30,31 @@ const generatePdf = (pathPaciente, pathLog) => {
     }).then(dataRunCommand => {
       if(dataRunCommand.code === 0){
         let date = new Date();
-        return log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF generado correctamente... ${pathPaciente.dir} \n Subiendo a azure los resultados pdf ... ${date}`);
+        return log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `generando PDF ... ${pathPaciente.dir} ${date}`);
       }else{
         spinner.fail(`${chalk.red('Error al generar PDF')}`);
         return;
       }
     }).then(dataLog => {
       return veryPdf(pathPaciente.dir, `${ruta[ruta.length - 1]}.pdf`);
-    }).then(resVeryPdf => {
+    }).then(async resVeryPdf => {
+      let date = new Date();
       if(resVeryPdf){
+        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF Generado ... ${date} => OK`);
+        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Subiendo archivos al servidor ...${date} => OK`);
         searchFilesPro(pathPaciente, pathLog);
         spinner.succeed(`${chalk.green(`PDF Generado`)}`)
       }else{
+        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF no generado ... ${date} => Error`);
         spinner.fail(`${chalk.red(`PDF no Generado ${resVeryPdf}`)}`)
       }
       
-    }).catch(err => {console.log(err)});
+    }).catch(err => {
+      let date = new Date();
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al genrar PDF... ${date} ${err} => ERROR`).then(data=>{
+        });
+      console.log(err)
+    });
 }
 
 const veryPdf = (pathFile, nameFile) => {

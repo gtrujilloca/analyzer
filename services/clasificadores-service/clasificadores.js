@@ -41,15 +41,17 @@ const callChecksStudies = async (pathPaciente, paciente, pathLog, estudioDiferen
   try {
     spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
     const checkList = await checkEstudies(pathPaciente, paciente, pathLog)
-      await Promise.all(checkList);
+    await Promise.all(checkList);
     const res = await upDateClasificadorJson(pathPaciente, paciente);
     let date = new Date();
-      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${paciente} => ${date}`);
+      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${date} => OK`);
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
       spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`);
       clasificadorDiferencial(pathPaciente, estudioDiferenciales, pathLog)
   } catch (error) {
-    
+    let date = new Date();
+    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores ... ${date} ${error} => ERROR`).then(data=>{
+      });
   }
 }
 
@@ -184,6 +186,9 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
         }
       });
     } catch (error) {
+      let date = new Date();
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores ... ${date} ${error} => ERROR`).then(data=>{
+        });
       reject(eror);
     }
   });
@@ -320,6 +325,9 @@ const upDateClasificadorJson = (pathPaciente, paciente) => {
         }
       }
     } catch (error) {
+      let date = new Date();
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores ... ${date} ${error} => ERROR`).then(data=>{
+        });
       reject(eror);
     }
   });

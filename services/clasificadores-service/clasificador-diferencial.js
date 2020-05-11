@@ -65,7 +65,9 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, p
       spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
     }
   } catch (error) {
-    
+    let date = new Date();
+    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+      });
   }
 }
 
@@ -98,6 +100,9 @@ const veryResClassificadores = (dataJsonPaciente) => {
         }
        
     } catch (error) {
+      let date = new Date();
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+        });
       reject(error);
     }
   })
@@ -211,6 +216,9 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
         }
       });
     } catch (error) {
+      let date = new Date();
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+        });
       reject(eror);
     }
   });
@@ -339,6 +347,9 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
       }
 
     } catch (error) {
+      let date = new Date();
+      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+        });
       reject(eror);
     }
   });
