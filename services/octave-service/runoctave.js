@@ -57,7 +57,7 @@ const searchFilesRunOctave=(path, pathLog) =>{
   if (extname.extname(path) === '.json') {
     readFilee(path)
       .then(dataJson => {
-        if (JSON.parse(dataJson).estado == 1) {
+        if (JSON.parse(dataJson).estado == 2) {
           verifyAnalysisTypesAI(JSON.parse(dataJson)).then(responseAnalysis =>{
             const pathPaciente = extname.parse(path);
             let commandOctave= "";
@@ -67,7 +67,6 @@ const searchFilesRunOctave=(path, pathLog) =>{
             }else{
                commandOctave =`cd ${ROUTER_OCTAVE}; analyzer('${pathPaciente.dir}', [${JSON.parse(dataJson).Pathologies_Studied}])`;
             }
-            console.log(commandOctave);
             spinner.succeed(`${chalk.yellow(commandOctave)}`)
             createFile({ pathPaciente, commandOctave })
             .then(file => {
