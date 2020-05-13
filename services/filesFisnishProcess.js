@@ -27,9 +27,9 @@ function filesFisnishProcess(pathPaciente, dataPaciente) {
                           const indexJson = filesList.indexOf(jsonDirectory);
                           if (indexJson !== -1) {
                             const fileJson = filesList.splice(indexJson, 1);
-                            const response = await pushFilesAzureFinish(filesList);
+                            const response = await pushFilesAzureFinish(filesList, dataPaciente);
                             const datajson = await updateJson(jsonDirectory, 3)
-                            const res = await pushFilesAzureFinish(fileJson);
+                            const res = await pushFilesAzureFinish(fileJson,dataPaciente);
                             const datajson2 = await updateJson(jsonDirectory, -1);
 
                         
@@ -114,7 +114,7 @@ function filesFisnishProcess(pathPaciente, dataPaciente) {
  
 }
 
-function pushFilesAzureFinish(files) {
+function pushFilesAzureFinish(files, dataPaciente) {
   return new Promise((resolve, reject) => {
     try {
       spinner.text= `${chalk.yellow(`Subiendo Archvos a Azure`)}`
