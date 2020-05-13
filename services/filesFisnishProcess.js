@@ -34,7 +34,7 @@ function filesFisnishProcess(pathPaciente, dataPaciente) {
 
                         
                             spinner.text= `${chalk.yellow(`Iniciando copia de seguridad local`)}`;
-                            copyFilesFinalizados(path.dir).then(resCopyfiles => {
+                            const resCopyfiles = await copyFilesFinalizados(path.dir);
                               if (resCopyfiles.res) {
                                 deleteFolder(path.dir).then(resDeletedFolder => {
                                   if (resDeletedFolder) {
@@ -67,19 +67,7 @@ function filesFisnishProcess(pathPaciente, dataPaciente) {
                                   });
                                 console.log("error hacer copia de seguridad");
                               }
-                            }).catch((err) => {
-                              logService({
-                                label: dataPaciente.Label,
-                                 labelGlobal:dataPaciente.Label, 
-                                 accion:'Subida de archivos',
-                                 nombreProceso: 'Subiendo archivos a Azure',
-                                 estadoProceso: 'ERROR',
-                                 codigoProceso: 74,
-                                 descripcion: `Error al subir achivos a Azure ${err}`,
-                                 fecha: new Date()
-                                });
-                              console.log(err);
-                            });
+                           
                           }
                         } catch (error) {
                           logService({
