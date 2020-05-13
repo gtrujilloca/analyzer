@@ -58,7 +58,7 @@ const callChecksStudies = async (pathPaciente, paciente, dataPaciente, estudioDi
        nombreProceso: 'Llamado a clasificadores',
        estadoProceso: 'OK',
        codigoProceso: 200,
-       descripcion: `Clasificadores generados correctamente ${err}`,
+       descripcion: `Clasificadores generados correctamente`,
        fecha: new Date()
       });
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
