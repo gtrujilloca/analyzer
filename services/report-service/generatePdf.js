@@ -1,14 +1,16 @@
+require('dotenv').config();
 const fs = require('fs');
 const { readFilee, log } = require('../system-service/fs');
 const searchFilesPro = require('../filesFisnishProcess');
 const starProcess = require('../system-service/runProcess');
+const logService = require('../log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
-const ROUTER_GENERATE_PDF = process.env.ROUTER_GENERATE_PDF;
+const {ROUTER_DOWNLOAD_BLOB, ROUTER_GENERATE_PDF} = process.env;
+
 
 let runProcess = null;
 //singlenton de intancia de funcion para proceso de consola
@@ -16,7 +18,7 @@ if (!runProcess) {
   runProcess = starProcess();
 }
 
-const generatePdf = (pathPaciente, pathLog) => {
+const generatePdf = (pathPaciente, dataPaciente) => {
   spinner.start();
   spinner.text= `${chalk.yellow('Iniciando servicio de generacon de PDF')}`
   let ruta = pathPaciente.dir.split('/');
@@ -30,28 +32,50 @@ const generatePdf = (pathPaciente, pathLog) => {
     }).then(dataRunCommand => {
       if(dataRunCommand.code === 0){
         let date = new Date();
-        return log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `generando PDF ... ${pathPaciente.dir} ${date}`);
+        return veryPdf(pathPaciente.dir, `${ruta[ruta.length - 1]}.pdf`);
       }else{
         spinner.fail(`${chalk.red('Error al generar PDF')}`);
         return;
       }
-    }).then(dataLog => {
-      return veryPdf(pathPaciente.dir, `${ruta[ruta.length - 1]}.pdf`);
-    }).then(async resVeryPdf => {
+      }).then(async resVeryPdf => {
       let date = new Date();
       if(resVeryPdf){
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF Generado ... ${date} => OK`);
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Subiendo archivos al servidor ...${date} => OK`);
-        searchFilesPro(pathPaciente, pathLog);
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal:dataPaciente.Label, 
+           accion:'Generacion de PDF',
+           nombreProceso: 'Generacion de resultados en PDF',
+           estadoProceso: 'OK',
+           codigoProceso: 200,
+           descripcion: `Generacion de PDF correctamente`,
+           fecha: new Date()
+          });
+        searchFilesPro(pathPaciente, dataPaciente);
         spinner.succeed(`${chalk.green(`PDF Generado`)}`)
       }else{
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `PDF no generado ... ${date} => Error`);
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal:dataPaciente.Label, 
+           accion:'Generacion de PDF',
+           nombreProceso: 'Generacion de resultados en PDF',
+           estadoProceso: 'ERROR',
+           codigoProceso: 61,
+           descripcion: `PDF no generado`,
+           fecha: new Date()
+          });
         spinner.fail(`${chalk.red(`PDF no Generado ${resVeryPdf}`)}`)
       }
       
     }).catch(err => {
-      let date = new Date();
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al genrar PDF... ${date} ${err} => ERROR`).then(data=>{
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal:dataPaciente.Label, 
+         accion:'Generacion de PDF',
+         nombreProceso: 'Generacion de resultados en PDF',
+         estadoProceso: 'ERROR',
+         codigoProceso: 61,
+         descripcion: `Error al generar pdf ${err}`,
+         fecha: new Date()
         });
       console.log(err)
     });

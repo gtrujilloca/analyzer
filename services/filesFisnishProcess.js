@@ -2,18 +2,18 @@ const extname = require("path");
 const { pushfile, veryBlob, deleteBlob} = require("./azure-service/azurePush");
 const { updateJson } = require('./system-service/jsonEditFile');
 const { readFilee, deleteFolder, copyFilesFinalizados, getListFile, log} = require('./system-service/fs');
+const logService = require('./log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 
-const CONTAINER_NAME_FINALIZADOS = process.env.CONTAINER_NAME_FINALIZADOS;
-const CONTAINER_NAME_FINALIZADOS_BACKUP = process.env.CONTAINER_NAME_FINALIZADOS_BACKUP;
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
+const { CONTAINER_NAME_FINALIZADOS, CONTAINER_NAME_FINALIZADOS_BACKUP , ROUTER_DOWNLOAD_BLOB} = process.env;
+
 
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
-function filesFisnishProcess(pathPaciente, pathLog) {
+function filesFisnishProcess(pathPaciente, dataPaciente) {
       spinner.start();
       spinner.text= `${chalk.yellow(`------- Servicio subir a Azure ------- ${pathPaciente}`)}`
       const jsonDirectory = `${pathPaciente.dir}/${pathPaciente.base}`;
@@ -27,16 +27,27 @@ function filesFisnishProcess(pathPaciente, pathLog) {
                           const indexJson = filesList.indexOf(jsonDirectory);
                           if (indexJson !== -1) {
                             const fileJson = filesList.splice(indexJson, 1);
-                            const response = await pushFilesAzureFinish(filesList);
+                            const response = await pushFilesAzureFinish(filesList, dataPaciente);
                             const datajson = await updateJson(jsonDirectory, 3)
-                            const res = await pushFilesAzureFinish(fileJson);
+                            const res = await pushFilesAzureFinish(fileJson,dataPaciente);
                             const datajson2 = await updateJson(jsonDirectory, -1);
-                            
+
+                        
                             spinner.text= `${chalk.yellow(`Iniciando copia de seguridad local`)}`;
-                            copyFilesFinalizados(path.dir).then(resCopyfiles => {
+                            const resCopyfiles = await copyFilesFinalizados(path.dir);
                               if (resCopyfiles.res) {
                                 deleteFolder(path.dir).then(resDeletedFolder => {
                                   if (resDeletedFolder) {
+                                    logService({
+                                      label: dataPaciente.Label,
+                                       labelGlobal: dataPaciente.Label, 
+                                       accion:'Copia de seguridad',
+                                       nombreProceso: 'Copia de seguridad servidor',
+                                       estadoProceso: 'OK',
+                                       codigoProceso: 200,
+                                       descripcion: `Copia de seguridad en el servidor correctamente`,
+                                       fecha: new Date()
+                                      });
                                     spinner.succeed(`${chalk.green(`Copia de seguridad terminada satisfactoriamente`)}`);
                                     spinner.succeed(`${chalk.green(`Proceso terminado satsfactoriamente`)}`);
                                   } else {
@@ -44,22 +55,46 @@ function filesFisnishProcess(pathPaciente, pathLog) {
                                   }
                                 });
                               } else {
+                                logService({
+                                  label: dataPaciente.Label,
+                                   labelGlobal:dataPaciente.Label, 
+                                   accion:'Copia de seguridad',
+                                   nombreProceso: 'Copia de seguridad en el Servidor',
+                                   estadoProceso: 'ERROR',
+                                   codigoProceso: 75,
+                                   descripcion: `Error al hacer copia de seguridad en el servidor`,
+                                   fecha: new Date()
+                                  });
                                 console.log("error hacer copia de seguridad");
                               }
-                            }).catch((err) => {
-                              console.log(err);
-                            });
+                           
                           }
                         } catch (error) {
+                          logService({
+                            label: dataPaciente.Label,
+                             labelGlobal:dataPaciente.Label, 
+                             accion:'Subida de archivos',
+                             nombreProceso: 'Subiendo archivos a Azure',
+                             estadoProceso: 'ERROR',
+                             codigoProceso: 73,
+                             descripcion: `Error al subir achivos a Azure ${error}`,
+                             fecha: new Date()
+                            });
                           console.log(error);
                         }
                       });
                 }
               }).catch(err => {
-                var date = new Date();
-                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error ${i} ${err} ${date}`).then(data=>{
-                    console.log(data);
-                });
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Subida de archivos',
+                   nombreProceso: 'Subiendo archivos a Azure',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 72,
+                   descripcion: `Error al subir achivos a Azure ${err}`,
+                   fecha: new Date()
+                  });
                 console.log("error al ejecutar el proceso lista " , err);
               });
             }
@@ -67,7 +102,7 @@ function filesFisnishProcess(pathPaciente, pathLog) {
  
 }
 
-function pushFilesAzureFinish(files) {
+function pushFilesAzureFinish(files, dataPaciente) {
   return new Promise((resolve, reject) => {
     try {
       spinner.text= `${chalk.yellow(`Subiendo Archvos a Azure`)}`
@@ -93,6 +128,16 @@ function pushFilesAzureFinish(files) {
             spinner.text= `Subiendo ... ${chalk.red(i+1)} de ${chalk.yellow(files.length+1)} `;
           }
           if (i === files.length) {
+            logService({
+              label: dataPaciente.Label,
+               labelGlobal:dataPaciente.Label, 
+               accion:'Subida de archivos',
+               nombreProceso: 'Subiendo archivos a Azure',
+               estadoProceso: 'OK',
+               codigoProceso: 200,
+               descripcion: `Achivos subidos correctamente`,
+               fecha: new Date()
+              });
             if(files.length > 1){
               spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i+1)} de ${chalk.yellow(files.length+1)} `);
             }
@@ -100,6 +145,16 @@ function pushFilesAzureFinish(files) {
           }
       });
     } catch (error) {
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal:dataPaciente.Label, 
+         accion:'Subida de archivos',
+         nombreProceso: 'Subiendo archivos a Azure',
+         estadoProceso: 'ERROR',
+         codigoProceso: 71,
+         descripcion: `Error al subir achivos a Azure ${error}`,
+         fecha: new Date()
+        });
       console.log(error);
       reject(false);
     }

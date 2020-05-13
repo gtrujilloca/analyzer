@@ -2,7 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const { log } = require('../system-service/fs');
 const starProcess = require('../system-service/runProcess');
-
+const logService = require('../log-service/log-service')
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
@@ -16,29 +16,55 @@ if (!runProcess) {
   runProcess = starProcess();
 }
 
-const uploadToDBToTest = (pathPaciente, pathLog)  => {
+const uploadToDBToTest = (pathPaciente, dataPaciente)  => {
   return new Promise ( async (resolve, reject) => {
     try {
       spinner.start();
       spinner.text = `${chalk.yellow('Iniciando Servicio subir a Bd TEST')}`;
-      let date = new Date();
-      const res = await searchFilesTest(pathPaciente.dir, pathLog);
+      const res = await searchFilesTest(pathPaciente.dir, dataPaciente);
       if(res){
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Test y calibraciones subidas a base de datos... ${date} => OK`);
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal: dataPaciente.Label, 
+           accion:'Subida a BD',
+           nombreProceso: 'Subida de TESTs a BD',
+           estadoProceso: 'OK',
+           codigoProceso: 200,
+           descripcion: `TEST subidos a BD correctamente => ${res}`,
+           fecha: new Date()
+          });
         resolve(true);
       }else{
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir test y calibraciones a base de datos... ${date} => ERROR`);
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal: dataPaciente.Label, 
+           accion:'Subida a BD',
+           nombreProceso: 'Subida de TESTs a BD',
+           estadoProceso: 'ERROR',
+           codigoProceso: 41,
+           descripcion: `TEST no subidos a BD`,
+           fecha: new Date()
+          });
         resolve(false);
       }
     } catch (error) {
-      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir test y calibraciones a base de datos... ${date} ${error}=> ERROR`);
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal: dataPaciente.Label, 
+         accion:'Subida a BD',
+         nombreProceso: 'Subida de TESTs a BD',
+         estadoProceso: 'ERROR',
+         codigoProceso: 42,
+         descripcion: `Error TEST no subidos a BD ${error}`,
+         fecha: new Date()
+        });
       reject(error);
     }
   })
 };
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
-const searchFilesTest = (path, pathLog) => {
+const searchFilesTest = (path, dataPaciente) => {
   return new Promise((resolve, reject) => {
     try {
       spinner.text = `${chalk.yellow('Buscando Calibraiones')}`;
@@ -92,11 +118,16 @@ const searchFilesTest = (path, pathLog) => {
       });
     } catch (error) {
       reject(error);
-      let date = new Date();
-      log(
-        `${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,
-        'Error al subir test y calibraciones a base de datos...' + date + ' => ERROR'
-      ).then(data => {});
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal: dataPaciente.Label, 
+         accion:'Subida a BD',
+         nombreProceso: 'Subida de TESTs a BD',
+         estadoProceso: 'ERROR',
+         codigoProceso: 43,
+         descripcion: `Error TEST no subidos a BD ${error}`,
+         fecha: new Date()
+        });
     }
   });
 };

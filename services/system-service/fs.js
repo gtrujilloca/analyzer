@@ -182,10 +182,10 @@ function getListFile(dir, done) {
             next();
           });
         } else {
-          if (extname.extname(file !== '.avi')){
+          if (extname.extname(file) !== '.avi'){
             results.push(file);
-            next();
           }
+          next();
         }
       });
     })();
