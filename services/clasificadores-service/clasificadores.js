@@ -5,6 +5,7 @@ const { updateJsonFiles } = require('../system-service/jsonEditFile');
 const { clasificadorDiferencial } = require('./clasificador-diferencial');
 const push_DB_datos = require("../db-service/push_bd_datos");
 const uploadToDBToTest = require("../db-service/push_bd_test");
+const logService = require('../log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -22,40 +23,72 @@ if (!runProcess) {
 
 
 
-const clasificador = (pathPaciente, pathLog, estudioDiferenciales) => {
+const clasificador = (pathPaciente, dataPaciente, estudioDiferenciales) => {
   spinner.start();
   spinner.text= `${chalk.blue('Servicio de Clasificadores')}`
   let jsonpaciente = null;
   readFilee(`${pathPaciente.dir}/${pathPaciente.base}`).then(data => {
     jsonpaciente = JSON.parse(data.toString());
-    callChecksStudies(pathPaciente, jsonpaciente, pathLog, estudioDiferenciales);
+    callChecksStudies(pathPaciente, jsonpaciente, dataPaciente, estudioDiferenciales);
   }).catch(err => {
-    let date = new Date();
-    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al llamar los clasificadores... ${date}`).then(data=>{
+    logService({
+      label: dataPaciente.Label,
+       labelGlobal: dataPaciente.Label, 
+       accion:'Ejecucion Clasificadores',
+       nombreProceso: 'Llamado a clasificadores',
+       estadoProceso: 'Error',
+       codigoProceso: 31,
+       descripcion: `Error llmado a los clasificadores ${err}`,
+       fecha: new Date()
       });
       spinner.fail(`${chalk.red('Error',err)}`)
   });
 }
 
-const callChecksStudies = async (pathPaciente, paciente, pathLog, estudioDiferenciales) => {
+const callChecksStudies = async (pathPaciente, paciente, dataPaciente, estudioDiferenciales) => {
   try {
     spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
-    const checkList = await checkEstudies(pathPaciente, paciente, pathLog)
+    const checkList = await checkEstudies(pathPaciente, paciente, dataPaciente)
     await Promise.all(checkList);
     const res = await upDateClasificadorJson(pathPaciente, paciente);
-    let date = new Date();
-      await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores generados correctamente... ${date} => OK`);
+    logService({
+      label: dataPaciente.Label,
+       labelGlobal: dataPaciente.Label, 
+       accion:'Ejecucion Clasificadores',
+       nombreProceso: 'Llamado a clasificadores',
+       estadoProceso: 'OK',
+       codigoProceso: 200,
+       descripcion: `Clasificadores generados correctamente ${err}`,
+       fecha: new Date()
+      });
       await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal: dataPaciente.Label, 
+         accion:'Actualizacion de archivo',
+         nombreProceso: 'Acualizacion de clasificadores en el Json',
+         estadoProceso: 'OK',
+         codigoProceso: 200,
+         descripcion: `Actualizacion de los clasificadores en el Json correctamente => ${res}`,
+         fecha: new Date()
+        });
       spinner.succeed(`${chalk.green('Proceso de clasificacion terminada')}`);
-      clasificadorDiferencial(pathPaciente, estudioDiferenciales, pathLog)
+      clasificadorDiferencial(pathPaciente, estudioDiferenciales, dataPaciente)
   } catch (error) {
-    let date = new Date();
-    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores ... ${date} ${error} => ERROR`).then(data=>{
+    logService({
+      label: dataPaciente.Label,
+       labelGlobal: dataPaciente.Label, 
+       accion:'Ejecucion Clasificadores',
+       nombreProceso: 'ejecucion de clasificadores',
+       estadoProceso: 'Error',
+       codigoProceso: 32,
+       descripcion: `Error ejecucion de los clasificadores ${error}`,
+       fecha: new Date()
       });
   }
 }
 
-const checkEstudies = (pathPaciente, paciente, pathLog) => {
+const checkEstudies = (pathPaciente, paciente, dataPaciente) => {
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
@@ -84,7 +117,16 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             }).catch(err => {
-              //console.log(err);
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecucion Clasificadores',
+                 nombreProceso: 'ejecucion de clasificador 2',
+                 estadoProceso: 'Error',
+                 codigoProceso: 33,
+                 descripcion: `Error ejecucion del clasificador EA_vs_control ${err}`,
+                 fecha: new Date()
+                });
             });
             break;
 
@@ -102,7 +144,16 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             }).catch(err => {
-       
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecucion Clasificadores',
+                 nombreProceso: 'ejecucion de clasificador 3',
+                 estadoProceso: 'Error',
+                 codigoProceso: 34,
+                 descripcion: `Error ejecucion del clasificador Parkinson_vs_control ${err}`,
+                 fecha: new Date()
+                });
             });
             break;
 
@@ -121,7 +172,16 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);    
             }).catch(err => {
-              
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecucion Clasificadores',
+                 nombreProceso: 'ejecucion de clasificador 5',
+                 estadoProceso: 'Error',
+                 codigoProceso: 35,
+                 descripcion: `Error ejecucion del clasificador DFT_vs_control ${err}`,
+                 fecha: new Date()
+                });
             });
             break;
 
@@ -140,7 +200,16 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             }).catch(err => {
-            
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecucion Clasificadores',
+                 nombreProceso: 'ejecucion de clasificador 9',
+                 estadoProceso: 'Error',
+                 codigoProceso: 36,
+                 descripcion: `Error ejecucion del clasificador DCL_vs_control ${err}`,
+                 fecha: new Date()
+                });
             });
             break;
 
@@ -159,7 +228,16 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             }).catch(err => {
-
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecucion Clasificadores',
+                 nombreProceso: 'ejecucion de clasificador 8',
+                 estadoProceso: 'Error',
+                 codigoProceso: 37,
+                 descripcion: `Error ejecucion del clasificador  EHM_vs_control ${err}`,
+                 fecha: new Date()
+                });
             });
             break;
 
@@ -179,6 +257,16 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
               addCheck += 1;
               verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
             }).catch(err => {
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecucion Clasificadores',
+                 nombreProceso: 'ejecucion de clasificador 10',
+                 estadoProceso: 'Error',
+                 codigoProceso: 38,
+                 descripcion: `Error ejecucion del clasificador Parkinsionismos_vs_control ${err}`,
+                 fecha: new Date()
+                });
             });
             break;
           default:
@@ -186,8 +274,15 @@ const checkEstudies = (pathPaciente, paciente, pathLog) => {
         }
       });
     } catch (error) {
-      let date = new Date();
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores ... ${date} ${error} => ERROR`).then(data=>{
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal: dataPaciente.Label, 
+         accion:'Ejecucion Clasificadores',
+         nombreProceso: 'ejecucion de clasificador',
+         estadoProceso: 'Error',
+         codigoProceso: 38,
+         descripcion: `Error ejecucion de los clasificadores ${error}`,
+         fecha: new Date()
         });
       reject(eror);
     }
@@ -325,8 +420,15 @@ const upDateClasificadorJson = (pathPaciente, paciente) => {
         }
       }
     } catch (error) {
-      let date = new Date();
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores ... ${date} ${error} => ERROR`).then(data=>{
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal: dataPaciente.Label, 
+         accion:'Edicion de archivos',
+         nombreProceso: 'actualizar valores de clasificadores',
+         estadoProceso: 'Error',
+         codigoProceso: 311,
+         descripcion: `Error al actualizar los valores de los clasificadores en el Json ${error}`,
+         fecha: new Date()
         });
       reject(eror);
     }

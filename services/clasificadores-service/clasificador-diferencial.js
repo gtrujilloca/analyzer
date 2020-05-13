@@ -5,6 +5,7 @@ const { updateJsonFiles } = require('../system-service/jsonEditFile');
 const push_DB_datos = require("../db-service/push_bd_datos");
 const uploadToDBToTest = require("../db-service/push_bd_test");
 const generatePdf = require("../report-service/generatePdf");
+const logService = require('../log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -20,53 +21,102 @@ if (!runProcess) {
   runProcess = starProcess();
 }
 
-const clasificadorDiferencial = (pathPaciente,estudioDiferenciales ,pathLog) => {
+const clasificadorDiferencial = (pathPaciente,estudioDiferenciales ,dataPaciente) => {
   spinner.start();
   spinner.text= `${chalk.yellow('Run Clasificadores Diferenciales')}`
   let jsonpaciente = null;
   readFilee(`${pathPaciente.dir}/${pathPaciente.base}`).then(data => {
     jsonpaciente = JSON.parse(data.toString());
-    callChecksStudies(pathPaciente, estudioDiferenciales, jsonpaciente, pathLog);
+    callChecksStudies(pathPaciente, estudioDiferenciales, jsonpaciente, dataPaciente);
   }).catch(err => {
-    let date = new Date();
-    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al llamar los clasificadores diferenciales... ${date}`).then(data=>{
+    logService({
+      label: jsonpaciente.Label,
+       labelGlobal: jsonpaciente.Label, 
+       accion:'Clasificadores diferenciales',
+       nombreProceso: 'Servicio de clasificadores diferenciales',
+       estadoProceso: 'ERROR',
+       codigoProceso: 2,
+       descripcion: `Error al ejecutar Clasificadores ${err}`,
+       fecha: new Date()
       });
       spinner.fail(`${chalk.red('Error',err)}`)
   });
 }
 
-const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, pathLog) => {
+const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, dataPaciente) => {
   try {
     if(estudioDiferenciales.res){
       const veryClassificadores = await veryResClassificadores(paciente);
-      console.log(veryClassificadores)
       if(veryClassificadores.res === true){
-        console.log('Clasificadores diferenciales');
         spinner.text= `${chalk.yellow('Verificando Pathologias a estudiadas')}`
-        const checkList = await checkEstudies(pathPaciente, veryClassificadores.data, paciente ,pathLog)
+        const checkList = await checkEstudies(pathPaciente, veryClassificadores.data, paciente ,dataPaciente)
         await Promise.all(checkList);
-        console.log('Diferenciales ejecutados');
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal: dataPaciente.Label, 
+           accion:'Clasificadores diferenciales',
+           nombreProceso: 'Servicio de clasificadores diferenciales ejecutado',
+           estadoProceso: 'OK',
+           codigoProceso: 200,
+           descripcion: `Clasificadores Diferenciales ejecutados correctamente ${veryClassificadores.data}`,
+           fecha: new Date()
+          });
         const res = await upDateDiferencialJson(pathPaciente, paciente, veryClassificadores.data);
         await updateJsonFiles(`${pathPaciente.dir}/${pathPaciente.base}`, res);
-        console.log('Json actualizado ');
-        let date = new Date();
-        await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Clasificadores diferenciales generados correctamente... ${paciente} => ${date}`);
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal:dataPaciente.Label, 
+           accion:'Actualizando archivo',
+           nombreProceso: 'Actualiacion de archivo Json con los clasificadores diferenciales',
+           estadoProceso: 'OK',
+           codigoProceso: 200,
+           descripcion: `Json actualizado ${res}`,
+           fecha: new Date()
+          });
+        
         spinner.succeed(`${chalk.green('Proceso de clasificacion diferencial terminada')}`);
-        const resPushTest = await uploadToDBToTest(pathPaciente, pathLog);
-        const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-        generatePdf(pathPaciente, pathLog);
+        const resPushTest = await uploadToDBToTest(pathPaciente, dataPaciente);
+        const resPushDatos = await push_DB_datos(pathPaciente, dataPaciente);
+        generatePdf(pathPaciente, dataPaciente);
       }else{
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal:dataPaciente.Label, 
+           accion:'Clasificadores diferenciales',
+           nombreProceso: 'No hay que ejecutar clasificadores diferenciales ejecutado',
+           estadoProceso: 'OK',
+           codigoProceso: 200,
+           descripcion: `No hay que ejecutar clasificadores Diferenciales`,
+           fecha: new Date()
+          });
         spinner.fail(`${chalk.red('No hay que ejecutar clasificadores diferenciales')}`)
-        const resPushTest = await uploadToDBToTest(pathPaciente, pathLog);
-        const resPushDatos = await push_DB_datos(pathPaciente, pathLog);
-        generatePdf(pathPaciente, pathLog);
+        const resPushTest = await uploadToDBToTest(pathPaciente, dataPaciente);
+        const resPushDatos = await push_DB_datos(pathPaciente, dataPaciente);
+        generatePdf(pathPaciente, dataPaciente);
       }
     }else{
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal:dataPaciente.Label, 
+         accion:'Clasificadores diferenciales',
+         nombreProceso: 'Servicio de clasificadores diferenciales',
+         estadoProceso: 'ERROR',
+         codigoProceso: 2,
+         descripcion: `No hayq eu estudiar las pathologias`,
+         fecha: new Date()
+        });
       spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
     }
   } catch (error) {
-    let date = new Date();
-    log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+    logService({
+      label:dataPaciente.Label,
+       labelGlobal:dataPaciente.Label, 
+       accion:'Clasificadores diferenciales',
+       nombreProceso: 'Servicio de clasificadores diferenciales',
+       estadoProceso: 'ERROR',
+       codigoProceso: 28,
+       descripcion: `Error al ejecutar Clasificadores ${error}`,
+       fecha: new Date()
       });
   }
 }
@@ -100,15 +150,22 @@ const veryResClassificadores = (dataJsonPaciente) => {
         }
        
     } catch (error) {
-      let date = new Date();
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+      logService({
+        label:dataPaciente.Label,
+         labelGlobal:dataPaciente.Label, 
+         accion:'Clasificadores diferenciales',
+         nombreProceso: 'Servicio de clasificadores diferenciales',
+         estadoProceso: 'ERROR',
+         codigoProceso: 2,
+         descripcion: `Error al ejecutar Clasificadores ${error}`,
+         fecha: new Date()
         });
       reject(error);
     }
   })
 }
 
-const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
+const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, dataPaciente) => {
   //retorno una promesa donde voy a verificar si los archivos del casificador estan creados
   return new Promise((resolve, reject) => {
     try {
@@ -141,7 +198,16 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
               }).catch(err => {
-                //console.log(err);
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal: dataPaciente.Label, 
+                   accion:'Clasificadores diferenciales',
+                   nombreProceso: 'Servicio de clasificadores diferenciales EA_vs_DFT',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al ejecutar Clasificadores ${err}`,
+                   fecha: new Date()
+                  });
               });
             }
             break;
@@ -163,7 +229,16 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
               }).catch(err => {
-        
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal: dataPaciente.Label, 
+                   accion:'Clasificadores diferenciales',
+                   nombreProceso: 'Servicio de clasificadores diferenciales EA_vs_DCL',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al ejecutar Clasificadores ${err}`,
+                   fecha: new Date()
+                  });
               });
             }
             break;
@@ -185,6 +260,16 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);    
               }).catch(err => {
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Clasificadores diferenciales',
+                   nombreProceso: 'Servicio de clasificadores diferenciales DFT_vs_DCL',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al ejecutar Clasificadores ${err}`,
+                   fecha: new Date()
+                  });
                 
               });
             }
@@ -207,6 +292,16 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
                 addCheck += 1;
                 verifyPromises(addCheck, Pathologies_Studied.length, promesasArray, resolve);
               }).catch(err => {
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Clasificadores diferenciales',
+                   nombreProceso: 'Servicio de clasificadores diferenciales EP_vs_PKS',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al ejecutar Clasificadores ${err}`,
+                   fecha: new Date()
+                  });
               
               });
             }
@@ -216,17 +311,22 @@ const checkEstudies = (pathPaciente, paciente, dataJsonPaciente, pathLog) => {
         }
       });
     } catch (error) {
-      let date = new Date();
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal:dataPaciente.Label, 
+         accion:'Clasificadores diferenciales',
+         nombreProceso: 'Servicio de clasificadores diferenciales',
+         estadoProceso: 'ERROR',
+         codigoProceso: 2,
+         descripcion: `Error al ejecutar Clasificadores ${error}`,
+         fecha: new Date()
         });
-      reject(eror);
+      reject(error);
     }
   });
 }
 
 const verifyPromises = (checks, pathologies, dataResolve, resolve) => {
-  console.log('verifique ', checks , pathologies);
-  console.log(dataResolve);
   if (checks === pathologies) {
     spinner.succeed(`${chalk.green('Servicio clasificadores diferenciales finalizado')}`);
     resolve(dataResolve);
@@ -239,7 +339,6 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
   return new Promise((resolve, reject) => {
     try {
       spinner.text= `${chalk.yellow('Actualizando Json con clasificadores Diferenciales')}`
-      console.log("actualizando Json");
       promesasArray = [];
       let addCheck = 0;
       console.log(estudioDiferenciales)
@@ -264,11 +363,18 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));         
                 dataJsonPaciente.resultados_IA_demencias[3] = parseInt(data);
                 addCheck += 1;
-                console.log("check ", addCheck);
-                verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
-                console.log("fin");
+                verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);  
               }).catch(err => {
-                console.log(err);
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Actualizacion de archivo',
+                   nombreProceso: 'Servicio de clasificadores diferenciales',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al actualizar Json con los clasificadores diferenciales ${err}`,
+                   fecha: new Date()
+                  });
               });
             }
             break;
@@ -287,11 +393,18 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));          
                 dataJsonPaciente.resultados_IA_demencias[4] = parseInt(data);
                 addCheck += 1;
-                console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
-                console.log("fin");
               }).catch(err => {
-                console.log(err);
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Actualizacion de archivo',
+                   nombreProceso: 'Servicio de clasificadores diferenciales',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al actualizar Json con los clasificadores diferenciales ${err}`,
+                   fecha: new Date()
+                  });
               });
             }
             break;
@@ -310,11 +423,20 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log(parseInt(data));        
                 dataJsonPaciente.resultados_IA_demencias[5] = parseInt(data);
                 addCheck += 1;
-                console.log("check ", addCheck);
+              
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
-                console.log("fin");
+               
               }).catch(err => {
-                console.log(err);
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Actualizacion de archivo',
+                   nombreProceso: 'Servicio de clasificadores diferenciales',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al actualizar Json con los clasificadores diferenciales ${err}`,
+                   fecha: new Date()
+                  });
               });
             }
             break;
@@ -336,7 +458,16 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
                 console.log("check ", addCheck);
                 verifyPromises(addCheck, estudioDiferenciales.length, dataJsonPaciente, resolve);
               }).catch(err => {
-                //console.log(err);
+                logService({
+                  label: dataPaciente.Label,
+                   labelGlobal:dataPaciente.Label, 
+                   accion:'Actualizacion de archivo',
+                   nombreProceso: 'Servicio de clasificadores diferenciales',
+                   estadoProceso: 'ERROR',
+                   codigoProceso: 2,
+                   descripcion: `Error al actualizar Json con los clasificadores diferenciales ${err}`,
+                   fecha: new Date()
+                  });
               });
             }
             break;
@@ -347,8 +478,15 @@ const upDateDiferencialJson = (pathPaciente, dataJsonPaciente, estudioDiferencia
       }
 
     } catch (error) {
-      let date = new Date();
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al Ejecutar clasificadores Diferenciales... ${date} ${error} => ERROR`).then(data=>{
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal:dataPaciente.Label, 
+         accion:'Actualizacion de archivo',
+         nombreProceso: 'Servicio de clasificadores diferenciales',
+         estadoProceso: 'ERROR',
+         codigoProceso: 2,
+         descripcion: `Error al actualizar Json con los clasificadores diferenciales ${error}`,
+         fecha: new Date()
         });
       reject(eror);
     }

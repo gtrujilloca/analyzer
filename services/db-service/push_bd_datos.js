@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const starProcess = require("../system-service/runProcess");
 const {log} = require("../system-service/fs");
+const logService = require('../log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -19,7 +20,7 @@ if(!runProcess){
 }
 
 
-const uploadToDBToDatos = (pathPaciente, pathLog) => {
+const uploadToDBToDatos = (pathPaciente, dataPaciente) => {
   return new Promise ((resolve, reject) => {
     try {
       let date = new Date();
@@ -29,20 +30,56 @@ const uploadToDBToDatos = (pathPaciente, pathLog) => {
       spinner.succeed(`${chalk.blue(command)}`);
       runProcess(command).then(async data =>{
        if(data){
-         await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Datos del paciente subida a base de datos... ${date} => OK`);
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal:dataPaciente.Label, 
+           accion:'Subida a BD',
+           nombreProceso: 'Subida de DATOS a BD',
+           estadoProceso: 'OK',
+           codigoProceso: 200,
+           descripcion: `Subida de datos del paciente a BD correctamente`,
+           fecha: new Date()
+          });
          spinner.succeed(`${chalk.green('Subida de datos a la BD DATOS finalizada ')}`);
          resolve(true);
         }else{
-          await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`);
+          logService({
+            label: dataPaciente.Label,
+             labelGlobal: dataPaciente.Label, 
+             accion:'Subida a BD',
+             nombreProceso: 'Subida de TESTs a BD',
+             estadoProceso: 'ERROR',
+             codigoProceso: 51,
+             descripcion: `Error TEST no subidos a BD ${error}`,
+             fecha: new Date()
+            });
           spinner.fail(`${chalk.green('Error al subir Coleccion DATOS')}`)
           resolve(false);
         }
       }).catch(err =>{ 
-        log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`).then(data=>{});
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal: dataPaciente.Label, 
+           accion:'Subida a BD',
+           nombreProceso: 'Subida de TESTs a BD',
+           estadoProceso: 'ERROR',
+           codigoProceso: 52,
+           descripcion: `Error TEST no subidos a BD ${error}`,
+           fecha: new Date()
+          });
         console.log(err);
       });
     } catch (error) {
-      log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`,`Error al subir datos del paciente  a base de datos... ${date} => ERROR`).then(data=>{});
+      logService({
+        label: dataPaciente.Label,
+         labelGlobal: dataPaciente.Label, 
+         accion:'Subida a BD',
+         nombreProceso: 'Subida de DATOS a BD',
+         estadoProceso: 'ERROR',
+         codigoProceso: 53,
+         descripcion: `Error DATOS no subidos a BD ${error}`,
+         fecha: new Date()
+        });
       reject(error);
     }
   })

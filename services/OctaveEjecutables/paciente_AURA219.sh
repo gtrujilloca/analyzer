@@ -1,1 +1,0 @@
-cd /Users/andresagudelo/Documents/aura/auraOctavePaciente; analyzer('/Users/andresagudelo/Documents/aura/procesos/enProceso/HUCV/patologia_AURA219/paciente_AURA219', [2,3,5,8,9,10,25,29,59,310])

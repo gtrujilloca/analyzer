@@ -7,6 +7,7 @@ const axios = require('axios');
 const blobService = azure.createBlobService();
 const { updateJson } = require('../system-service/jsonEditFile');
 const { log } = require('../system-service/fs');
+const logService = require('../log-service/log-service')
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
@@ -65,14 +66,14 @@ async function searchJsonBlob() {
       const dataTestPacient = await axios.get(`${urlAzure}${blob.name}`);
       if (dataTestPacient.data.estado === 1) {
         spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure}${blob.name}`)}`);
-        await downloadBlobForPath(blob, dataTestPacient.data.files);
+        await downloadBlobForPath(blob, dataTestPacient.data.files, dataTestPacient.data);
         //await deletedBlobForPath(blob);
       }
     }
   }
 }
 
-async function downloadBlobForPath(blobFile, numbersFilesContainer) {
+async function downloadBlobForPath(blobFile, numbersFilesContainer, dataPaciente) {
   try {
     spinner.start();
     let pathLevels = blobFile.name.split('/');
@@ -92,17 +93,40 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer) {
       spinner.text = `Descargando ${chalk.red(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
     }
     }
-    var date = new Date();
     spinner.succeed(`${chalk.yellow('Descarga finalizada')} - archivos => ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`);
-    await log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Archivos Encontrados... '+blobFile.name +'\n Archivos descargados... '+filesDownloaded+" "+ date + " => OK");
+    logService({
+      label: dataPaciente.Label,
+       labelGlobal: dataPaciente.Label, 
+       accion:'Descarga de archivos',
+       nombreProceso: 'Descargar de archivos de Azure a Servidor',
+       estadoProceso: 'OK',
+       codigoProceso: 200,
+       descripcion: `Descargar finalizada correctamente archivos => ${filesDownloaded}`,
+       fecha: new Date()
+      });
     await updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
+    logService({
+      label: dataPaciente.Label,
+       labelGlobal: dataPaciente.Label, 
+       accion:'Editar archivo',
+       nombreProceso: 'Editar contenido Json',
+       estadoProceso: 'OK',
+       codigoProceso: 200,
+       descripcion: `Cambio de estado delproceso de 1 a 2`,
+       fecha: new Date()
+      });
     searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
   } catch (error) {
-    var date = new Date();
-    log(ROUTER_DOWNLOAD_BLOB+'/'+pathLog, 'Error al descargar Archivos...'+ date).then(data=>{
-        console.log(data);
-        console.log(error);
-    });
+    logService({
+      label: dataPaciente.Label,
+       labelGlobal: dataPaciente.Label, 
+       accion:'Descarga de archivos',
+       nombreProceso: 'Falla al descargar archivos de Azura al servidor',
+       estadoProceso: 'ERROR',
+       codigoProceso: 21,
+       descripcion: `Falla de descarga de archivos ${error}`,
+       fecha: new Date()
+      });
   }
 
 }

@@ -5,6 +5,7 @@ const {clasificador} = require('../clasificadores-service/clasificadores');
 const starProcess = require('../system-service/runProcess');
 const { readFilee, createFile, deleteFile, log} = require('../system-service/fs');
 let runProcess = null;
+const logService = require('../log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -51,7 +52,7 @@ const verifyAnalysisTypesAI = (testJsonData) =>{
 
 
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
-const searchFilesRunOctave=(path, pathLog) =>{
+const searchFilesRunOctave=(path, dataPaciente) =>{
   spinner.start();
   spinner.text= `${chalk.yellow('Iniciando servicio Octave')}`
   if (extname.extname(path) === '.json') {
@@ -77,42 +78,70 @@ const searchFilesRunOctave=(path, pathLog) =>{
             .then(res => {
               if(!res){
                 if (res.code !== 0) {
-                  let date = new Date();
-                  log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{     
-                      console.log('error Al ejecutar comando Sh');
-                  });
+                  logService({
+                    label: dataPaciente.Label,
+                     labelGlobal: dataPaciente.Label, 
+                     accion:'Ejecutar Octave',
+                     nombreProceso: 'Ejecucion octave paciente',
+                     estadoProceso: 'Error',
+                     codigoProceso: 22,
+                     descripcion: `Error al ejecutar comando de octave`,
+                     fecha: new Date()
+                    });
                   return;
                 }
               }
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
-            .then(file => {
-              let date = new Date();
-              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data =>{})
+            .then(async file => {
               spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
-              searchFilesRunOctaveOld(path, pathLog);
+              searchFilesRunOctaveOld(path, dataPaciente);
             })
             .catch(err => {
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecutar Octave',
+                 nombreProceso: 'Ejecucion octave paciente',
+                 estadoProceso: 'Error',
+                 codigoProceso: 23,
+                 descripcion: `Error al ejecutar comando de octave ${err}`,
+                 fecha: new Date()
+                });
               console.log(`error Ejecutar ${err}`);
             });
 
 
           }).catch(err =>{
-
+            logService({
+              label: dataPaciente.Label,
+               labelGlobal: dataPaciente.Label, 
+               accion:'Ejecutar Octave',
+               nombreProceso: 'Ejecucion octave paciente',
+               estadoProceso: 'Error',
+               codigoProceso: 24,
+               descripcion: `Error al ejecutar comando de octave ${err}`,
+               fecha: new Date()
+              });
           })
         }
       })
       .catch(err => {
-        let date = new Date();
-        log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al leer archivo Json... ${err} ${date}`).then(data=>{
-            console.log(data);
-            console.log('error al ejecutar el proceso Octave PACIENTE' + err);
-        });
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal: dataPaciente.Label, 
+           accion:'Ejecutar Octave',
+           nombreProceso: 'Ejecucion octave paciente',
+           estadoProceso: 'Error',
+           codigoProceso: 25,
+           descripcion: `Error al ejecutar comando de octave ${err}`,
+           fecha: new Date()
+          });
       });
   }
 }
 
-const searchFilesRunOctaveOld = (path, pathLog) => {
+const searchFilesRunOctaveOld = (path, dataPaciente) => {
   spinner.text= `${chalk.yellow('Iniciando servicio Octave patologia')}`
           const pathPaciente = extname.parse(path);
           const commandOctave = `cd ${ROUTER_OCTAVE}; main_automatizado('${extname.dirname(pathPaciente.dir)}')`;
@@ -126,29 +155,49 @@ const searchFilesRunOctaveOld = (path, pathLog) => {
             .then(res => {
               if(!res){
                 if (res.code !== 0) {
-                  let date = new Date();
-                  log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`).then(data=>{     
-                      console.log('error Al ejecutar comando Sh');
-                  });
+                  logService({
+                    label: dataPaciente.Label,
+                     labelGlobal: dataPaciente.Label, 
+                     accion:'Ejecutar Octave',
+                     nombreProceso: 'Ejecucion octave patologia',
+                     estadoProceso: 'Error',
+                     codigoProceso: 26,
+                     descripcion: `Error al ejecutar comando de octave en patologia ${err}`,
+                     fecha: new Date()
+                    });
                   return;
                 }
               }
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
             .then(file => {
-              let date = new Date();
-              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Proceso Octave Finalizado... ${pathPaciente.name} ${date} => OK`).then(data => {});
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecutar Octave',
+                 nombreProceso: 'Ejecucion octave',
+                 estadoProceso: 'OK',
+                 codigoProceso: 200,
+                 descripcion: `ejecucion de octave finalizado `,
+                 fecha: new Date()
+                });
               spinner.succeed(`${chalk.green('Proceso octave finalizado => OK')}`);
-              clasificador(pathPaciente, pathLog, estudioDiferenciales);
+              clasificador(pathPaciente, dataPaciente, estudioDiferenciales);
                
             })
             .catch(err => {
-              let date = new Date();
-              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Error al ejecutar Octave... '+err+" "+ date).then(data=>{
-                  console.log(data);
-                  console.log('error al ejecutar el proceso ' + err);
+              logService({
+                label: dataPaciente.Label,
+                 labelGlobal: dataPaciente.Label, 
+                 accion:'Ejecutar Octave',
+                 nombreProceso: 'Ejecucion octave patologia',
+                 estadoProceso: 'Error',
+                 codigoProceso: 27,
+                 descripcion: `Error al ejecutar comando de octave en patologia ${err}`,
+                 fecha: new Date()
+                });
+                console.log('error al ejecutar el proceso ' + err);
               });
-            });
 }
 
 
