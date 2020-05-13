@@ -67,7 +67,7 @@ async function searchJsonBlob() {
       if (dataTestPacient.data.estado === 1) {
         spinner.succeed(`${chalk.yellow(`Blob encontrado => ${urlAzure}${blob.name}`)}`);
         await downloadBlobForPath(blob, dataTestPacient.data.files, dataTestPacient.data);
-        //await deletedBlobForPath(blob);
+        await deletedBlobForPath(blob);
       }
     }
   }
@@ -115,7 +115,7 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer, dataPaciente
        descripcion: `Cambio de estado delproceso de 1 a 2`,
        fecha: new Date()
       });
-    searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, pathLog);     
+    searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, dataPaciente);     
   } catch (error) {
     logService({
       label: dataPaciente.Label,
