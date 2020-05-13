@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const { readFilee, log } = require('../system-service/fs');
 const searchFilesPro = require('../filesFisnishProcess');
@@ -8,8 +9,8 @@ const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
-const ROUTER_GENERATE_PDF = process.env.ROUTER_GENERATE_PDF;
+const {ROUTER_DOWNLOAD_BLOB, ROUTER_GENERATE_PDF} = process.env;
+
 
 let runProcess = null;
 //singlenton de intancia de funcion para proceso de consola
