@@ -57,7 +57,7 @@ function filesFisnishProcess(pathPaciente, pathLog) {
                 }
               }).catch(err => {
                 var date = new Date();
-                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al subir archivos subidos a azure correctamente ... error en el archivo ${i} ${err} ${date}`).then(data=>{
+                log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error ${i} ${err} ${date}`).then(data=>{
                     console.log(data);
                 });
                 console.log("error al ejecutar el proceso lista " , err);

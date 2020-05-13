@@ -86,9 +86,9 @@ const searchFilesRunOctave=(path, pathLog) =>{
               }
               return deleteFile(`services/OctaveEjecutables/${pathPaciente.name}.sh`);
             })
-            .then(file => {
+            .then(async file => {
               let date = new Date();
-              log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date).then(data =>{})
+              await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, 'Ejecutando Octave... '+ date)
               spinner.succeed(`${chalk.green('Proceso octave paciente finalizado')}`);
               searchFilesRunOctaveOld(path, pathLog);
             })

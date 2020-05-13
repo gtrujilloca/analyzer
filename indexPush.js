@@ -2,15 +2,13 @@ const express = require('express');
 const { config } = require('./config/index');
 const app = express();
 const cron = require('node-cron');
-const { downloadPdf , ListPdf} = require('./services/azure-service/azure');
 const searchFilesOscann = require('./services/oscann_files.js');
-const hospitalesApi = require('./routes/hospitales.js');
-const azureApi = require('./routes/azure-routers/azure');
+
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 
-const pathEntrada = process.env.ROUTER_ENTRY_FILE;
+const { ROUTER_ENTRY_FILE } = process.env;
 
 
 try {  
@@ -18,7 +16,7 @@ try {
   spinner.start();
       //cron.schedule('  */2 * * * *', () => {
         spinner.text= `${chalk.yellow('Buscando archivos para subir al servidor ...')}`
-          searchFilesOscann(pathEntrada);
+          searchFilesOscann(ROUTER_ENTRY_FILE);
           spinner.succeed(`${chalk.yellow('Busqueda finalizada...')}`);
      //});
 } catch (error) {

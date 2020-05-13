@@ -1,7 +1,7 @@
 //libreria de file system
 const fs = require('fs');
 const fse = require('fs-extra');
-
+const extname = require('path');
 
 const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP ;
 const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE ;
@@ -182,8 +182,10 @@ function getListFile(dir, done) {
             next();
           });
         } else {
-          results.push(file);
-          next();
+          if (extname.extname(file !== '.avi')){
+            results.push(file);
+            next();
+          }
         }
       });
     })();

@@ -1,4 +1,3 @@
-// const chalk = require('chalk');
 const fs = require('fs');
 const azure = require('./azure-service/azure');
 const Ora = require('ora');
@@ -15,9 +14,8 @@ async function initAutomator() {
     await azure.searchJsonBlob();
     spinner.succeed(`${chalk.green('Busqueda Finalizada')}`);
   } catch (error) {
-    //spinner.failed(`${chalk.red(error)}`);
+    spinner.fail(`${chalk.red(error)}`);
   }
 }
-//V013GDAURA
 
 module.exports = initAutomator;

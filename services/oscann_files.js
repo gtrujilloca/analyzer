@@ -3,7 +3,7 @@ const extname = require('path');
 const { pushfile, veryBlob, deleteBlob } = require('./azure-service/azure');
 const starProcess = require('./system-service/runProcess');
 const { updateJson, updateJsonNumeroArchivos } = require('./system-service/jsonEditFile');
-const { readFilee, deleteFolder, copyFiles, getListFile } = require('./system-service/fs');
+const { readFilee, deleteFolder, copyFiles, getListFile, log } = require('./system-service/fs');
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -11,8 +11,7 @@ const spinner = new Ora();
 
 
 let runProcess = null;
-const {CONTAINER_NAME_ENTRADA, CONTAINER_NAME_ENTRADABACKUP}= process.env;
-const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
+const {CONTAINER_NAME_ENTRADA, CONTAINER_NAME_ENTRADABACKUP, ROUTER_ENTRY_FILE}= process.env;
 
 
 //singlenton de intancia de funcion para proceso de consola
@@ -34,13 +33,19 @@ const searchFilesOscann = (path) => {
         searchFilesOscann(nuevoPath);
       } else {
         if (extname.extname(files[i]) === '.json') {
-          readFilee(nuevoPath).then(jsonData => {
+          readFilee(nuevoPath).then(async jsonData => {
+            try {
             if (JSON.parse(jsonData).estado == 0) {
-              updateJson(nuevoPath, 1).then(jsonUpdate => {
+                await updateJson(nuevoPath, 1);
+                let date = new Date();
+                await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`)
+                await log(`${ROUTER_DOWNLOAD_BLOB}/${pathLog}`, `Error al ejecutar comando de Octave Sh... ${date}`)
                 spinner.text = `${chalk.blue('Update estado Json =>')} paciente ${JSON.parse(jsonData).Label}`;
-              }).catch(err => {
+
+              }
+            } catch (error) {
                 spinner.fail(`${chalk.red(error)}`);
-              });
+            }
 
               getListFile(path, async (err, filesList) => {
                 try {
