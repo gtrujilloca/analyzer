@@ -2,7 +2,7 @@ const extname = require("path");
 const { pushfile, veryBlob, deleteBlob} = require("./azure-service/azurePush");
 const { updateJson } = require('./system-service/jsonEditFile');
 const { readFilee, deleteFolder, copyFilesFinalizados, getListFile, log} = require('./system-service/fs');
-const logService = require('../log-service/log-service')
+const logService = require('./log-service/log-service')
 
 const Ora = require('ora');
 const chalk = require('chalk');
