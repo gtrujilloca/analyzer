@@ -21,7 +21,6 @@ function azureApi(app) {
 
   router.post('/buscar', async function(req, res, next) {
     try {
-      console.log(req);
       const resPdf = await AzureService.searchPdf(
         req.body.hospital,
         req.body.label
