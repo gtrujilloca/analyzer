@@ -19,12 +19,12 @@ function azureApi(app) {
     }
   });
 
-  router.get('/buscar/:label/:hospital', async function(req, res, next) {
+  router.post('/buscar', async function(req, res, next) {
     try {
-      
+      console.log(req);
       const resPdf = await AzureService.searchPdf(
-        req.params.hospital,
-        req.params.label
+        req.body.hospital,
+        req.body.label
       );
       console.log(resPdf);
       res.status(200).json({
