@@ -202,4 +202,3 @@ const searchFilesRunOctaveOld = (path, dataPaciente) => {
 
 
 module.exports = searchFilesRunOctave;
-

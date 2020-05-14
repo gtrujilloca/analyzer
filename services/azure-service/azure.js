@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { config } = require('../../config/index');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const  searchFilesRunOctave  = require('../octave-service/runoctave');
 const fs = require('fs');
@@ -14,18 +15,25 @@ const chalk = require('chalk');
 const spinner = new Ora();
 
 //conexion con azure
+const AZURE_STORAGE_CONNECTION_STRING =
+  process.env.AZURE_STORAGE_CONNECTION_STRING;
 const urlAzure ='https://externalstorageaccount.blob.core.windows.net/entrada/';
+
+
 const urlAzureDownoload ='https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
 const urlAzureDownoloadFinalizados ='https://externalstorageaccount.blob.core.windows.net/finalizados/';
+const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
+const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
+const CONTAINER_NAME_FINALIZADOS_BACKUP = process.env.CONTAINER_NAME_FINALIZADOS_BACKUP || 'finalizadosbackup'
 
-
-
-const {ROUTER_DOWNLOAD_BLOB, ROUTER_DOWNLOAD_BLOB_BACKUP, CONTAINER_NAME_FINALIZADOS_BACKUP, CONTAINER_NAME, 
-  CONTAINER_NAME_FINALIZADOS,CONTAINER_NAME_ENTRADA, AZURE_STORAGE_CONNECTION_STRING} = process.env ;
 
 let CONTAINER_CLIENT = null;
 let CONTAINER_CLIENT_BACKUP = null;
+let CONTAINER_NAME_FINALIZADOS = process.env.CONTAINER_NAME_FINALIZADOS;
+
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB || '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProceso';
+ROUTER_DOWNLOAD_BLOB_BACKUP = '/home/andresagudelo/Documentos/OCTAVEproyects/PATOLOGIAS/enProcesoBackup'
 
 
 
