@@ -50,7 +50,7 @@ const uploadToDBToDatos = (pathPaciente, dataPaciente) => {
              nombreProceso: 'Subida de TESTs a BD',
              estadoProceso: 'ERROR',
              codigoProceso: 51,
-             descripcion: `Error TEST no subidos a BD ${error}`,
+             descripcion: `Error TEST no subidos a BD `,
              fecha: new Date()
             });
           spinner.fail(`${chalk.green('Error al subir Coleccion DATOS')}`)
@@ -64,7 +64,7 @@ const uploadToDBToDatos = (pathPaciente, dataPaciente) => {
            nombreProceso: 'Subida de TESTs a BD',
            estadoProceso: 'ERROR',
            codigoProceso: 52,
-           descripcion: `Error TEST no subidos a BD ${error}`,
+           descripcion: `Error TEST no subidos a BD ${err}`,
            fecha: new Date()
           });
         console.log(err);

@@ -252,7 +252,7 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
           }
           if (i === files.length) {
             if (files.length > 1) {
-              spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} `);
+              spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} ${containerName} `);
             }
             resolve({ res: true, filesFailed: filesFailedPush });
           }

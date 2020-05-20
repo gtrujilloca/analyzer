@@ -86,24 +86,21 @@ const veryPdf = (pathFile, nameFile) => {
     spinner.text= `${chalk.yellow('Verificando creacion de PDF')}`
     let vecesVerificadas = 0;
     const verifyPdf = setInterval(() => {
-      fs.readdir(pathFile, (err, files) => {
-        if (err) reject(err);
-        
-        if (files.indexOf(nameFile) > -1) {
+      fs.exists(`${pathFile}/${nameFile}`,function(exists){
+        if(exists){
           spinner.succeed(`${chalk.red(`Verificacion finalizada`)}`)
           clearInterval(verifyPdf);
           resolve(true);
+        }else{
+          vecesVerificadas++;
+          if(vecesVerificadas>5){
+            spinner.fail(`${chalk.red(`files ${files}`)}`);
+            clearInterval(verifyPdf);
+            resolve(false);
+          }
         }
-
-        if(vecesVerificadas === 5){
-          spinner.succeed(`${chalk.red(`Verificacion finalizada`)}`)
-          resolve(false);
-        }
-
-        vecesVerificadas++;
-
       });
-    }, 5000);
+    }, 4000);
   });
 }
 
