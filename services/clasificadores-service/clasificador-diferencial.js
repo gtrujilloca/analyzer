@@ -81,7 +81,7 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, d
       }else{
         logService({
           label: dataPaciente.Label,
-           labelGlobal:dataPaciente.Label, 
+           labelGlobal: dataPaciente.Label, 
            accion:'Clasificadores diferenciales',
            nombreProceso: 'No hay que ejecutar clasificadores diferenciales ejecutado',
            estadoProceso: 'OK',
@@ -100,12 +100,15 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, d
          labelGlobal:dataPaciente.Label, 
          accion:'Clasificadores diferenciales',
          nombreProceso: 'Servicio de clasificadores diferenciales',
-         estadoProceso: 'ERROR',
-         codigoProceso: 2,
+         estadoProceso: 'WARNING',
+         codigoProceso: 100,
          descripcion: `No hayq eu estudiar las pathologias`,
          fecha: new Date()
         });
-      spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
+        spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
+        const resPushTest = await uploadToDBToTest(pathPaciente, dataPaciente);
+        const resPushDatos = await push_DB_datos(pathPaciente, dataPaciente);
+        generatePdf(pathPaciente, dataPaciente);
     }
   } catch (error) {
     logService({
