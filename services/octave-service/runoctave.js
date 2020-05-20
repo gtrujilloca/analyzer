@@ -37,7 +37,7 @@ const verifyAnalysisTypesAI = (testJsonData) =>{
       if(testJsonData.Analysis_types_for_AI["PD vs PKS"] === true){
         Analysis_types_for_AI_values.push(310)
       }
-      if(Analysis_types_for_AI_values){
+      if(Analysis_types_for_AI_values.length > 0){
         resolve({res: true, data: Analysis_types_for_AI_values})
       }else{
         resolve({res: false, data: Analysis_types_for_AI_values})
