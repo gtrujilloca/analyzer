@@ -25,19 +25,19 @@ const verifyAnalysisTypesAI = (testJsonData) =>{
     try {
       if(!testJsonData) resolve({res:false, data: Analysis_types_for_AI_values});
 
-      if(testJsonData.Analysis_types_for_AI["AD vs FTD"] === true){
+      if(testJsonData.Analysis_types_for_AI["AD vs FTD"] ){
         Analysis_types_for_AI_values.push(25)
       }
-      if(testJsonData.Analysis_types_for_AI["AD vs MCI"] === true){
+      if(testJsonData.Analysis_types_for_AI["AD vs MCI"] ){
         Analysis_types_for_AI_values.push(29)
       }
-      if(testJsonData.Analysis_types_for_AI["FTD vs MCI"] === true){
+      if(testJsonData.Analysis_types_for_AI["FTD vs MCI"] ){
         Analysis_types_for_AI_values.push(59)
       }
-      if(testJsonData.Analysis_types_for_AI["PD vs PKS"] === true){
+      if(testJsonData.Analysis_types_for_AI["PD vs PKS"]){
         Analysis_types_for_AI_values.push(310)
       }
-      if(Analysis_types_for_AI_values.length > 0){
+      if(Analysis_types_for_AI_values.length){
         resolve({res: true, data: Analysis_types_for_AI_values})
       }else{
         resolve({res: false, data: Analysis_types_for_AI_values})

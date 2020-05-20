@@ -114,21 +114,31 @@ const searchFilesTest = (path, dataPaciente) => {
           resolve(true);
         } else {
           spinner.fail(`${chalk.red('Faltan test por subir a la base datos')}`);
+          logService({
+            label: dataPaciente.Label,
+             labelGlobal: dataPaciente.Label, 
+             accion:'Subida a BD',
+             nombreProceso: 'Subida de TESTs a BD',
+             estadoProceso: 'ERROR',
+             codigoProceso: 45,
+             descripcion: `Error TEST Faltan archivos por subir`,
+             fecha: new Date()
+            });
           resolve(false);
         }
       });
     } catch (error) {
       reject(error);
-      logService({
-        label: dataPaciente.Label,
-         labelGlobal: dataPaciente.Label, 
-         accion:'Subida a BD',
-         nombreProceso: 'Subida de TESTs a BD',
-         estadoProceso: 'ERROR',
-         codigoProceso: 43,
-         descripcion: `Error TEST no subidos a BD ${error}`,
-         fecha: new Date()
-        });
+        logService({
+          label: dataPaciente.Label,
+           labelGlobal: dataPaciente.Label, 
+           accion:'Subida a BD',
+           nombreProceso: 'Subida de TESTs a BD',
+           estadoProceso: 'ERROR',
+           codigoProceso: 43,
+           descripcion: `Error TEST no subidos a BD ${error}`,
+           fecha: new Date()
+          });
     }
   });
 };
