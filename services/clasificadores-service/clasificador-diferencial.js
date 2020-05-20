@@ -102,7 +102,7 @@ const callChecksStudies = async (pathPaciente, estudioDiferenciales ,paciente, d
          nombreProceso: 'Servicio de clasificadores diferenciales',
          estadoProceso: 'WARNING',
          codigoProceso: 100,
-         descripcion: `No hayq eu estudiar las pathologias`,
+         descripcion: `No hay qeu estudiar las pathologias, no hay que ejecutar clasificadores diferenciales`,
          fecha: new Date()
         });
         spinner.fail(`${chalk.red('No hay que estudiar las patologias')}`)
