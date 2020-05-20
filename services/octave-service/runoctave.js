@@ -25,16 +25,16 @@ const verifyAnalysisTypesAI = (testJsonData) =>{
     try {
       if(!testJsonData) resolve({res:false, data: Analysis_types_for_AI_values});
 
-      if(testJsonData.Analysis_types_for_AI["AD vs FTD"]){
+      if(testJsonData.Analysis_types_for_AI["AD vs FTD"] === true){
         Analysis_types_for_AI_values.push(25)
       }
-      if(testJsonData.Analysis_types_for_AI["AD vs MCI"]){
+      if(testJsonData.Analysis_types_for_AI["AD vs MCI"] === true){
         Analysis_types_for_AI_values.push(29)
       }
-      if(testJsonData.Analysis_types_for_AI["FTD vs MCI"]){
+      if(testJsonData.Analysis_types_for_AI["FTD vs MCI"] === true){
         Analysis_types_for_AI_values.push(59)
       }
-      if(testJsonData.Analysis_types_for_AI["PD vs PKS"]){
+      if(testJsonData.Analysis_types_for_AI["PD vs PKS"] === true){
         Analysis_types_for_AI_values.push(310)
       }
       if(Analysis_types_for_AI_values){
@@ -63,6 +63,7 @@ const searchFilesRunOctave=(path, dataPaciente) =>{
             const pathPaciente = extname.parse(path);
             let commandOctave= "";
             estudioDiferenciales=responseAnalysis;
+            console.log(estudioDiferenciales);
             if(responseAnalysis.res){
                commandOctave =`cd ${ROUTER_OCTAVE}; analyzer('${pathPaciente.dir}', [${JSON.parse(dataJson).Pathologies_Studied},${responseAnalysis.data}])`;
             }else{

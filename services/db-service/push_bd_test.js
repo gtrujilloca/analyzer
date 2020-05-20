@@ -67,6 +67,7 @@ const uploadToDBToTest = (pathPaciente, dataPaciente)  => {
 const searchFilesTest = (path, dataPaciente) => {
   return new Promise((resolve, reject) => {
     try {
+      let calibracion = "";
       spinner.text = `${chalk.yellow('Buscando Calibraiones')}`;
       fs.readdir(path, (err, files) => {
         if (err) return console.log(err);

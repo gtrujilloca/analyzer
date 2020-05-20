@@ -12,13 +12,13 @@ const { ROUTER_ENTRY_FILE } = process.env;
 
 
 try {  
-  console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada 2 minutos ...')}`);
+  console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
-      //cron.schedule('  */2 * * * *', () => {
+      cron.schedule('  */1 * * * *', () => {
         spinner.text= `${chalk.yellow('Buscando archivos para subir al servidor ...')}`
           searchFilesOscann(ROUTER_ENTRY_FILE);
           spinner.succeed(`${chalk.yellow('Busqueda finalizada...')}`);
-     //});
+     });
 } catch (error) {
   console.log("Tarea Detenida");
 }
