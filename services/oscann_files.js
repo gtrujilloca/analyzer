@@ -82,6 +82,7 @@ const searchFilesOscann = (path) => {
 
                   const indexJson = filesList.indexOf(nuevoPath);
                   if (indexJson !== -1) {
+                    
                     const fileJson = filesList.splice(indexJson, 1);
                     spinner.text = `${chalk.green('Subiendo archivos al servidor')}`;
                     const response = await pushFilesAzure(
@@ -100,7 +101,10 @@ const searchFilesOscann = (path) => {
                          descripcion: `Archivos subidos ${filesList.length+1} => Archivos no subidos ${response.filesFailed.length}`,
                          fecha: new Date()
                         });
-                        spinner.succeed(`${chalk.green('Subida al servidor finalizada =>')} ${response.res}`)
+                        spinner.succeed(`${chalk.green('Subida al servidor finalizada =>')} ${response.res} ${JSON.parse(jsonData).Label}`)
+                      }else{
+                        spinner.fail(`${chalk.green('Error subida al servidor finalizada =>')} ${response} ${JSON.parse(jsonData).Label}`)
+
                     }
                     const responseBackup = await pushFilesAzure(
                       filesList,
@@ -198,10 +202,11 @@ const searchFilesOscann = (path) => {
   })
 }
 
+
+
 const pushFilesAzure = (files, jsonPaciente, containerName) => {
   return new Promise((resolve, reject) => {
     try {
-      const filesFailedPush = [];
       let i = 0;
       files.forEach(async file => {
         try {
@@ -231,7 +236,7 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
                 });
               } catch (error) {
                 spinner.fail(`Error ${chalk.red(error.res)} => Json file ${jsonName}`);
-                filesFailedPush.push(jsonName);
+                process.filesFailedPush.push(jsonName);
               }
             } else {
               try {
@@ -242,7 +247,7 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
                 })
               } catch (error) {
                 spinner.fail(`Error ${chalk.red(error.res)} => Subir archivo ${pathNuevo}${blobName}`);
-                filesFailedPush.push(`${pathNuevo}${blobName}`);
+                process.filesFailedPush.push(`${pathNuevo}${blobName}`);
               }
             }
           }
@@ -251,30 +256,21 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
             spinner.text = `Subiendo ... ${chalk.red(i + 1)} de ${chalk.yellow(files.length + 1)} `;
           }
           if (i === files.length) {
-            if (files.length > 1) {
-              spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} ${containerName} `);
-            }
-            resolve({ res: true, filesFailed: filesFailedPush });
+              if (files.length > 1) {
+                spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} ${containerName} `);
+              }
+              resolve({ res: true, filesFailed: process.filesFailedPush });
           }
 
         } catch (error) {
-          logService({
-            label: JSON.parse(jsonData).Label,
-             labelGlobal:JSON.parse(jsonData).Label, 
-             accion:'Subir archivo',
-             nombreProceso: 'Subir archivo a Azure',
-             estadoProceso: 'ERROR',
-             codigoProceso: 16,
-             descripcion: `Error Subir archivo a azure ${error}`,
-             fecha: new Date()
-            });
+        
           spinner.fail(`Error al subir archivo ${chalk.red(error)}`);
         }
       });
     } catch (error) {
       logService({
-        label: JSON.parse(jsonData).Label,
-         labelGlobal:JSON.parse(jsonData).Label, 
+        label: JSON.parse(jsonPaciente).Label,
+         labelGlobal:JSON.parse(jsonPaciente).Label, 
          accion:'Subir archivo',
          nombreProceso: 'Subir archivo a Azure',
          estadoProceso: 'ERROR',
@@ -283,7 +279,7 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
          fecha: new Date()
         });
       spinner.fail(`Error al subir archivos ${chalk.red(error)}`);
-      reject({ res: false, filesFailed: filesFailedPush });
+      reject({ res: false, filesFailed: process.filesFailedPush });
     }
   });
 }

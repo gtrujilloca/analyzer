@@ -3,6 +3,7 @@ const { config } = require('./config/index');
 const app = express();
 const cron = require('node-cron');
 const searchFilesOscann = require('./services/oscann_files.js');
+const retryFileFailedUpload = require('./services/system-service/retryFileFailedUpload')
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -12,6 +13,7 @@ const { ROUTER_ENTRY_FILE } = process.env;
 
 
 try {  
+  retryFileFailedUpload();
   console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
       cron.schedule('  */1 * * * *', () => {

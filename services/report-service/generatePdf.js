@@ -94,7 +94,7 @@ const veryPdf = (pathFile, nameFile) => {
         }else{
           vecesVerificadas++;
           if(vecesVerificadas>5){
-            spinner.fail(`${chalk.red(`files ${files}`)}`);
+            spinner.fail(`${chalk.red(`files ${exists}`)}`);
             clearInterval(verifyPdf);
             resolve(false);
           }
