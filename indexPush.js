@@ -13,7 +13,7 @@ const { ROUTER_ENTRY_FILE } = process.env;
 
 
 try {  
-  retryFileFailedUpload();
+  //retryFileFailedUpload();
   console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
       cron.schedule('  */1 * * * *', () => {

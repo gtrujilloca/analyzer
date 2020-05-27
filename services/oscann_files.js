@@ -263,7 +263,6 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
           }
 
         } catch (error) {
-        
           spinner.fail(`Error al subir archivo ${chalk.red(error)}`);
         }
       });

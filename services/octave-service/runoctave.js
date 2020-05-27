@@ -106,7 +106,7 @@ const searchFilesRunOctave=(path, dataPaciente) =>{
                  nombreProceso: 'Ejecucion octave paciente',
                  estadoProceso: 'Error',
                  codigoProceso: 23,
-                 descripcion: `Error al ejecutar comando de octave ${err}`,
+                 descripcion: `Error al Eliminar comando de octave ${err}`,
                  fecha: new Date()
                 });
               console.log(`error Ejecutar ${err}`);
