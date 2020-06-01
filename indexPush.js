@@ -9,17 +9,19 @@ const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
 
-const { ROUTER_ENTRY_FILE } = process.env;
+process.estadoServidor = false ;
 
 
 try {  
   //retryFileFailedUpload();
   console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
-      cron.schedule('  */1 * * * *', () => {
+      cron.schedule('  */10 * * * * *', () => {
         spinner.text= `${chalk.yellow('Buscando archivos para subir al servidor ...')}`
-          searchFilesOscann(ROUTER_ENTRY_FILE);
+        if(!process.estadoServidor){
+          searchFilesOscann();
           spinner.succeed(`${chalk.yellow('Busqueda finalizada...')}`);
+        }
      });
 } catch (error) {
   console.log("Tarea Detenida");

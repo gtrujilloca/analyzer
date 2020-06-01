@@ -3,10 +3,10 @@ const fs = require('fs');
 const fse = require('fs-extra');
 const extname = require('path');
 
-const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP ;
-const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE ;
-const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB ;
-const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP ;
+const ROUTER_ENTRY_FILE_BACKUP = process.env.ROUTER_ENTRY_FILE_BACKUP;
+const ROUTER_ENTRY_FILE = process.env.ROUTER_ENTRY_FILE;
+const ROUTER_DOWNLOAD_BLOB = process.env.ROUTER_DOWNLOAD_BLOB;
+const ROUTER_DOWNLOAD_BLOB_BACKUP = process.env.ROUTER_DOWNLOAD_BLOB_BACKUP;
 
 
 //recibe un objeto con data del paciente y el comando que se va a guardar
@@ -15,7 +15,7 @@ const createFile = data => {
     try {
       fs.writeFile(`services/OctaveEjecutables/${data.pathPaciente.name}.sh`,
         data.commandOctave,
-        function(err, file) {
+        function (err, file) {
           if (err) reject(err);
           resolve(file);
         }
@@ -32,7 +32,7 @@ const createFile = data => {
 const deleteFile = pathDelete => {
   return new Promise((resolve, reject) => {
     try {
-      fs.unlink(pathDelete, function(err) {
+      fs.unlink(pathDelete, function (err) {
         if (err) reject(err);
         resolve(pathDelete);
       });
@@ -49,7 +49,7 @@ const deleteFile = pathDelete => {
 const deleteFolder = pathDelete => {
   return new Promise((resolve, reject) => {
     try {
-      fse.remove(pathDelete, function(err) {
+      fse.remove(pathDelete, function (err) {
         if (err) reject(false);
         resolve(true);
       });
@@ -101,11 +101,11 @@ const checkFiles = (path, className) => {
 
 // Async/Await: Copiar Archivos
 async function copyFiles(file) {
-  return new Promise((resolve, reject)=>{  
+  return new Promise((resolve, reject) => {
     try {
-    const routeFileNew = file.split(`${ROUTER_ENTRY_FILE}/`)[1];
-    const listFolderName = routeFileNew.split("/");
-    const routeFilesNew = `${ROUTER_ENTRY_FILE_BACKUP}/${routeFileNew}`;
+      const routeFileNew = file.split(`${ROUTER_ENTRY_FILE}/`)[1];
+      const listFolderName = routeFileNew.split("/");
+      const routeFilesNew = `${ROUTER_ENTRY_FILE_BACKUP}/${routeFileNew}`;
       let newPath = ROUTER_ENTRY_FILE_BACKUP;
       //verifica si las rutas existen
       listFolderName.forEach(element => {
@@ -119,26 +119,26 @@ async function copyFiles(file) {
           console.log(`${newPath} created.`);
         }
       });
-      fse.copy(file, routeFilesNew).then(res=>{
-        resolve({res:true, routeNew:routeFilesNew});
-      }).catch(err=>{
-        reject({res:false, error:err});
+      fse.copy(file, routeFilesNew).then(res => {
+        resolve({ res: true, routeNew: routeFilesNew });
+      }).catch(err => {
+        reject({ res: false, error: err });
       });
-  
+
     } catch (err) {
       console.error(err)
-      reject({res:false, error:err});
+      reject({ res: false, error: err });
     }
   })
 }
 
 // Async/Await: 
 async function copyFilesFinalizados(file) {
-  return new Promise((resolve, reject)=>{  
+  return new Promise((resolve, reject) => {
     try {
-     console.log(file);
-     const routeFileNew = file.split(`${ROUTER_DOWNLOAD_BLOB}/`)[1];
-     const listFolderName = routeFileNew.split("/");
+      console.log(file);
+      const routeFileNew = file.split(`${ROUTER_DOWNLOAD_BLOB}/`)[1];
+      const listFolderName = routeFileNew.split("/");
       const routeFilesNew = `${ROUTER_DOWNLOAD_BLOB_BACKUP}/${routeFileNew}`;
       let newPath = ROUTER_DOWNLOAD_BLOB_BACKUP;
       listFolderName.forEach(element => {
@@ -146,27 +146,54 @@ async function copyFilesFinalizados(file) {
           fs.mkdirSync(newPath);
           console.log(`${newPath} created.`);
         }
-        newPath = newPath+"/"+element;
+        newPath = newPath + "/" + element;
         if (!fs.existsSync(newPath)) {
           fs.mkdirSync(newPath);
           console.log(`${newPath} created.`);
         }
       });
-      fse.copy(file, routeFilesNew).then(res=>{
-        resolve({res:true, routeNew:routeFilesNew});
-      }).catch(err=>{
-        reject({res:false, error:err});
+      fse.copy(file, routeFilesNew).then(res => {
+        resolve({ res: true, routeNew: routeFilesNew });
+      }).catch(err => {
+        reject({ res: false, error: err });
       });
 
     } catch (err) {
       console.error(err)
-      reject({res:false, error:err});
+      reject({ res: false, error: err });
     }
   })
 }
 
 //Optengo rutas de un directorio
 function getListFile(dir, done) {
+    let results = [];
+    fs.readdir(dir, function(err, list) {
+      if (err) return done(err);
+      let i = 0;
+      (function next() {
+        let file = list[i++];
+        if (!file) return done(null, results);
+        file = `${dir}/${file}`;
+        fs.stat(file, function (err2, stat) {
+          if (stat && stat.isDirectory()) {
+            getListFile(file, function (err3, res) {
+              results = results.concat(res);
+              next();
+            });
+          } else {
+            if (extname.extname(file) !== '.avi') {
+              results.push(file);
+            }
+            next();
+          }
+        });
+      })();
+    });
+};
+
+//Optengo rutas de un directorio
+function getListJson(dir, done) {
   let results = [];
   fs.readdir(dir, function (err, list) {
     if (err) return done(err);
@@ -177,13 +204,13 @@ function getListFile(dir, done) {
       file = `${dir}/${file}`;
       fs.stat(file, function (err2, stat) {
         if (stat && stat.isDirectory()) {
-          getListFile(file, function (err3, res) {
+          getListJson(file, function (err3, res) {
             results = results.concat(res);
             next();
           });
         } else {
-          if (extname.extname(file) !== '.avi'){
-            results.push(file);
+          if (extname.extname(file) === '.json') {
+                results.push(file);
           }
           next();
         }
@@ -194,13 +221,14 @@ function getListFile(dir, done) {
 
 
 
-function log(pathFile, text){
-  return new Promise((resolve, reject)=>{
+
+function log(pathFile, text) {
+  return new Promise((resolve, reject) => {
     try {
       var logger = fs.createWriteStream(pathFile, {
-        flags: 'a' 
+        flags: 'a'
       })
-      logger.write(text+'\n');
+      logger.write(text + '\n');
       resolve(text);
     } catch (error) {
       reject(error);
@@ -210,13 +238,14 @@ function log(pathFile, text){
 
 
 module.exports = {
-    createFile,
-    deleteFile,
-    deleteFolder,
-    readFilee,
-    checkFiles,
-    copyFiles,
-    copyFilesFinalizados,
-    getListFile,
-    log
+  createFile,
+  deleteFile,
+  deleteFolder,
+  readFilee,
+  checkFiles,
+  copyFiles,
+  copyFilesFinalizados,
+  getListFile,
+  getListJson,
+  log
 };

@@ -3,8 +3,11 @@ const extname = require('path');
 const { pushfile, veryBlob, deleteBlob } = require('./azure-service/azure');
 const starProcess = require('./system-service/runProcess');
 const { updateJson, updateJsonNumeroArchivos } = require('./system-service/jsonEditFile');
-const { readFilee, deleteFolder, copyFiles, getListFile } = require('./system-service/fs');
+const { readFilee, deleteFolder, copyFiles, getListFile, getListJson } = require('./system-service/fs');
 const logService = require('./log-service/log-service')
+
+const isOnline = require('is-online');
+const util = require('util');
 
 const Ora = require('ora');
 const chalk = require('chalk');
@@ -12,15 +15,83 @@ const spinner = new Ora();
 
 
 let runProcess = null;
-const {CONTAINER_NAME_ENTRADA, CONTAINER_NAME_ENTRADABACKUP, ROUTER_ENTRY_FILE}= process.env;
-
+let ListRoutFiles = {};
+const { CONTAINER_NAME_ENTRADA, CONTAINER_NAME_ENTRADABACKUP, ROUTER_ENTRY_FILE } = process.env;
+process.filesPush = [];
 
 //singlenton de intancia de funcion para proceso de consola
 if (!runProcess) {
   runProcess = starProcess();
 }
 
+
+const updateListRoutersProcess = ()=>{
+  return new Promise(async (resolve, reject)=>{
+    const getListJsonPromise = util.promisify(getListJson);
+    const listJsonRouters = await getListJsonPromise(ROUTER_ENTRY_FILE).catch(err => console.log(`Error obtener lista de Json ${err}`));
+    if(listJsonRouters.length !== 0){
+    for await (file of listJsonRouters) {
+        const jsonData = await readFilee(file).catch(err => console.log(`Error obtener lista de Json ${err}`));
+          if (JSON.parse(jsonData).estado === 0) {
+            if(process.filesPush.indexOf(file) === -1){
+              process.filesPush.push(file);
+              console.log("elemento nuevo ", file)
+            }
+          }
+      };
+      if(process.filesPush.length === 0){
+        resolve(false);
+      }
+      resolve(true);
+    }
+  }).catch(err =>{
+    reject(err)
+  })
+}
+
 //Funcion muestra archivo que contiene una carpeta y explora sus hijos
+const searchFilesOscann = async () => {
+  spinner.text = `${chalk.green('Buscando archivos para subir...')}`;
+  spinner.start();
+  if (await isOnline()) {
+    
+    const respFilesProcess = await updateListRoutersProcess();
+    console.log(process.filesPush, respFilesProcess)
+    if(process.filesPush.length !== 0){
+        process.estadoServidor = true;
+        let file = process.filesPush[0];   
+        console.log(extname.dirname(file))
+
+        const listFilestestPromise = util.promisify(getListFile)
+        const listFilestest = await listFilestestPromise(extname.dirname(file)).catch(err => { spinner.fail(`${chalk.red(err)}`); });
+        const indexJson = listFilestest.indexOf(file);
+       
+        if (indexJson !== -1) { //Envio el json al final para que suba de ultimo
+          listFilestest.push(file)
+          listFilestest.splice(indexJson, 1)
+        }
+        const jsonPaciente = JSON.parse(await readFilee(file));
+        await updateJson(file, 1).catch(err => { spinner.fail(`${chalk.red(err)}`); });
+        const res = await pushFilesAzure(listFilestest, jsonPaciente, CONTAINER_NAME_ENTRADA);
+        console.log(res);
+        if(!res.res){
+          await updateJson(file, 0).catch(err => { spinner.fail(`${chalk.red(err)}`); });
+        }else{
+          await updateJson(file, -1).catch(err => { spinner.fail(`${chalk.red(err)}`); });
+          await copyFiles(extname.dirname(file)).catch(err => { spinner.fail(`${chalk.red(err)}`); });
+          await deleteFolder(extname.dirname(file)).catch(err => { spinner.fail(`${chalk.red(err)}`); });       
+          process.filesPush.splice(0, 1)
+        }
+        process.estadoServidor=false;
+      }
+    
+    
+  }
+  else
+    console.log('Sin conexion a internet');
+}
+
+/* //Funcion muestra archivo que contiene una carpeta y explora sus hijos
 const searchFilesOscann = (path) => {
   spinner.text = `${chalk.green('Buscando archivos para subir...')}`;
   spinner.start();
@@ -200,15 +271,19 @@ const searchFilesOscann = (path) => {
       }
     }
   })
-}
+} */
 
 
 
 const pushFilesAzure = (files, jsonPaciente, containerName) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
+      spinner.text = `${chalk.green('Subiendo Archivos...')}`;
+      spinner.start();
       let i = 0;
-      files.forEach(async file => {
+      let filesFailedPush = [];
+      for await (let file of files) {
+        //files.forEach(async file => {
         try {
           const blobName = file.split(`${ROUTER_ENTRY_FILE}/`)[1];
           const pathNuevo = `${jsonPaciente.Hospital}/patologia_${jsonPaciente.Label}/paciente_`;
@@ -247,7 +322,7 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
                 })
               } catch (error) {
                 spinner.fail(`Error ${chalk.red(error.res)} => Subir archivo ${pathNuevo}${blobName}`);
-                process.filesFailedPush.push(`${pathNuevo}${blobName}`);
+                filesFailedPush.push(`${pathNuevo}${blobName}`);
               }
             }
           }
@@ -256,29 +331,35 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
             spinner.text = `Subiendo ... ${chalk.red(i + 1)} de ${chalk.yellow(files.length + 1)} `;
           }
           if (i === files.length) {
+            if (await verifyFilesPushed(filesFailedPush) === true) {
               if (files.length > 1) {
                 spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} ${containerName} `);
               }
-              resolve({ res: true, filesFailed: process.filesFailedPush });
+              resolve({ res: true, filesFailed: filesFailedPush });
+            } else {
+              spinner.succeed(`${chalk.green('Subida Finalizada ...')} ${chalk.yellow(i + 1)} de ${chalk.yellow(files.length + 1)} ${containerName} `);
+              resolve({ res: false, filesFailed: filesFailedPush });
+            }
           }
 
         } catch (error) {
           spinner.fail(`Error al subir archivo ${chalk.red(error)}`);
         }
-      });
+        //});
+      };
     } catch (error) {
       logService({
         label: JSON.parse(jsonPaciente).Label,
-         labelGlobal:JSON.parse(jsonPaciente).Label, 
-         accion:'Subir archivo',
-         nombreProceso: 'Subir archivo a Azure',
-         estadoProceso: 'ERROR',
-         codigoProceso: 16,
-         descripcion: `Error Subir archivo a azure ${error}`,
-         fecha: new Date()
-        });
+        labelGlobal: JSON.parse(jsonPaciente).Label,
+        accion: 'Subir archivo',
+        nombreProceso: 'Subir archivo a Azure',
+        estadoProceso: 'ERROR',
+        codigoProceso: 16,
+        descripcion: `Error Subir archivo a azure ${error}`,
+        fecha: new Date()
+      });
       spinner.fail(`Error al subir archivos ${chalk.red(error)}`);
-      reject({ res: false, filesFailed: process.filesFailedPush });
+      reject({ res: false, filesFailed: filesFailedPush });
     }
   });
 }
@@ -287,12 +368,11 @@ const pushFilesAzure = (files, jsonPaciente, containerName) => {
 const verifyFilesPushed = (arrayFilesFailded) => {
   return new Promise((resolve, reject) => {
     try {
-      console.log('Verificando archvivos')
-      if (arrayFilesFailded.length) {
+      if (arrayFilesFailded.length === 0) {
         resolve(true);
+      } else {
+        resolve(false);
       }
-      resolve(false);
-
     } catch (error) {
       reject(false);
     }

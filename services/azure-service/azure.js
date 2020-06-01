@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { config } = require('../../config/index');
 const { BlobServiceClient } = require('@azure/storage-blob');
-const  searchFilesRunOctave  = require('../octave-service/runoctave');
+const searchFilesRunOctave = require('../octave-service/runoctave');
 const fs = require('fs');
 const azure = require('azure-storage');
 const extname = require('path');
@@ -17,11 +17,11 @@ const spinner = new Ora();
 //conexion con azure
 const AZURE_STORAGE_CONNECTION_STRING =
   process.env.AZURE_STORAGE_CONNECTION_STRING;
-const urlAzure ='https://externalstorageaccount.blob.core.windows.net/entrada/';
+const urlAzure = 'https://externalstorageaccount.blob.core.windows.net/entrada/';
 
 
-const urlAzureDownoload ='https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
-const urlAzureDownoloadFinalizados ='https://externalstorageaccount.blob.core.windows.net/finalizados/';
+const urlAzureDownoload = 'https://externalstorageaccount.blob.core.windows.net/finalizadosbackup/';
+const urlAzureDownoloadFinalizados = 'https://externalstorageaccount.blob.core.windows.net/finalizados/';
 const CONTAINER_NAME_ENTRADA = process.env.CONTAINER_NAME_ENTRADA;
 
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'entrada';
@@ -64,9 +64,9 @@ async function initServiceClientBackup() {
 // Listar blob(s) en el contenedor
 async function searchJsonBlob() {
   spinner.start();
-  spinner.text= `${chalk.gray('Iniciando busqueda ...')}`
+  spinner.text = `${chalk.gray('Iniciando busqueda ...')}`
   for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
-    spinner.text= `${chalk.blue('Buscando ...')}`
+    spinner.text = `${chalk.blue('Buscando ...')}`
     if (extname.extname(blob.name) === '.json') {
       //necesito acceder a la url y consultar la informacion de Json
       const dataTestPacient = await axios.get(`${urlAzure}${blob.name}`);
@@ -92,47 +92,47 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer, dataPaciente
         pathLevelsBlob[1] === pathLevels[1] &&
         pathLevelsBlob[2] === pathLevels[2]
       ) {
-      if(extname.extname(blob.name) !== '.avi'){
-        filesDownloaded++;
-        await downloadBlob(blob); 
+        if (extname.extname(blob.name) !== '.avi') {
+          await downloadBlob(blob);
+          filesDownloaded++;
+        }
+        spinner.text = `Descargando ${chalk.red(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
       }
-      spinner.text = `Descargando ${chalk.red(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`;
-    }
     }
     spinner.succeed(`${chalk.yellow('Descarga finalizada')} - archivos => ${chalk.yellow(filesDownloaded)} de ${chalk.yellow(numbersFilesContainer)}`);
     logService({
       label: dataPaciente.Label,
-       labelGlobal: dataPaciente.Label, 
-       accion:'Descarga de archivos',
-       nombreProceso: 'Descargar de archivos de Azure a Servidor',
-       estadoProceso: 'OK',
-       codigoProceso: 200,
-       descripcion: `Descargar finalizada correctamente archivos => ${filesDownloaded}`,
-       fecha: new Date()
-      });
+      labelGlobal: dataPaciente.Label,
+      accion: 'Descarga de archivos',
+      nombreProceso: 'Descargar de archivos de Azure a Servidor',
+      estadoProceso: 'OK',
+      codigoProceso: 200,
+      descripcion: `Descargar finalizada correctamente archivos => ${filesDownloaded}`,
+      fecha: new Date()
+    });
     await updateJson(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, 2);
     logService({
       label: dataPaciente.Label,
-       labelGlobal: dataPaciente.Label, 
-       accion:'Editar archivo',
-       nombreProceso: 'Editar contenido Json',
-       estadoProceso: 'OK',
-       codigoProceso: 200,
-       descripcion: `Cambio de estado delproceso de 1 a 2`,
-       fecha: new Date()
-      });
-    searchFilesRunOctave(ROUTER_DOWNLOAD_BLOB+'/'+blobFile.name, dataPaciente);     
+      labelGlobal: dataPaciente.Label,
+      accion: 'Editar archivo',
+      nombreProceso: 'Editar contenido Json',
+      estadoProceso: 'OK',
+      codigoProceso: 200,
+      descripcion: `Cambio de estado delproceso de 1 a 2`,
+      fecha: new Date()
+    });
+    searchFilesRunOctave(`${ROUTER_DOWNLOAD_BLOB}/${blobFile.name}`, dataPaciente);
   } catch (error) {
     logService({
       label: dataPaciente.Label,
-       labelGlobal: dataPaciente.Label, 
-       accion:'Descarga de archivos',
-       nombreProceso: 'Falla al descargar archivos de Azura al servidor',
-       estadoProceso: 'ERROR',
-       codigoProceso: 21,
-       descripcion: `Falla de descarga de archivos ${error}`,
-       fecha: new Date()
-      });
+      labelGlobal: dataPaciente.Label,
+      accion: 'Descarga de archivos',
+      nombreProceso: 'Falla al descargar archivos de Azura al servidor',
+      estadoProceso: 'ERROR',
+      codigoProceso: 21,
+      descripcion: `Falla de descarga de archivos ${error}`,
+      fecha: new Date()
+    });
   }
 
 }
@@ -143,13 +143,13 @@ async function ListPdf() {
   await initServiceClientBackup();
   for await (const blob of CONTAINER_CLIENT_BACKUP.listBlobsFlat()) {
     if (extname.extname(blob.name) === '.pdf') {
-        const hospital = blob.name.split(`/`)[0];
-        const label = blob.name.split(`/`)[1].split(`patologia_`)[1];
-        const JsonName = `${urlAzureDownoload}${hospital}/patologia_${label}/paciente_${label}/paciente_${label}.json`;
-        pdfArray.push({urlPdf: urlAzureDownoload+blob.name,hospital: hospital, label: label, jsonName: JsonName ,fecha: blob.properties.lastModified });
-      }
+      const hospital = blob.name.split(`/`)[0];
+      const label = blob.name.split(`/`)[1].split(`patologia_`)[1];
+      const JsonName = `${urlAzureDownoload}${hospital}/patologia_${label}/paciente_${label}/paciente_${label}.json`;
+      pdfArray.push({ urlPdf: urlAzureDownoload + blob.name, hospital: hospital, label: label, jsonName: JsonName, fecha: blob.properties.lastModified });
     }
-    return pdfArray;
+  }
+  return pdfArray;
 }
 
 
@@ -159,24 +159,24 @@ async function downloadPdf(nameHospital, NamePaciente) {
   const nameBlobtoSearch = `${nameHospital}/patologia_${NamePaciente}/paciente_${NamePaciente}/paciente${NamePaciente}.pdf`;
   console.log(nameBlobtoSearch);
   console.log(urlAzure + nameBlobtoSearch);
-  veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch).then( async res =>{
+  veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch).then(async res => {
     if (res) await downloadBlobBackup(nameBlobtoSearch);
   });
 }
 
 // Buscar blob(s) PDf en un contenedor.
 async function searchPdf(Hospital, Pacient) {
-  try {    
+  try {
     const nameBlobtoSearch = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.pdf`;
     const nameJson = `${Hospital}/patologia_${Pacient}/paciente_${Pacient}/paciente_${Pacient}.json`;
     console.log(nameBlobtoSearch);
     let arrayResponse = {};
     const res = await veryBlob(CONTAINER_NAME_FINALIZADOS_BACKUP, nameBlobtoSearch);
     console.log(res);
-      if(res){
-          const dataTestPacient = await axios.get(`${urlAzureDownoload}${nameJson}`);
-          arrayResponse = {data: dataTestPacient.data, urlPdf: `${urlAzureDownoload}${nameBlobtoSearch}`};
-      } 
+    if (res) {
+      const dataTestPacient = await axios.get(`${urlAzureDownoload}${nameJson}`);
+      arrayResponse = { data: dataTestPacient.data, urlPdf: `${urlAzureDownoload}${nameBlobtoSearch}` };
+    }
     return arrayResponse;
   } catch (error) {
     console.log(error);
@@ -187,9 +187,9 @@ async function searchPdf(Hospital, Pacient) {
 async function downloadBlob(blobFile) {
   try {
     if (!fs.existsSync(ROUTER_DOWNLOAD_BLOB)) {
-      spinner.text= `${chalk.red('Directorio no existe, Creando...')}`
+      spinner.text = `${chalk.red('Directorio no existe, Creando...')}`
       fs.mkdirSync(ROUTER_DOWNLOAD_BLOB);
-      spinner.text= `${chalk.green('Directorio creado...')}`
+      spinner.text = `${chalk.green('Directorio creado...')}`
     }
     var pathNew = blobFile.name.split('/');
     var pathgeneral = ROUTER_DOWNLOAD_BLOB;
@@ -204,7 +204,7 @@ async function downloadBlob(blobFile) {
     }
     //instancio la conexion con el servicio a azure para descargar el blob al directorio seleccionado
     const response = await getBlob(blobFile.name);
-   
+
     return response;
   } catch (error) {
     console.error(error);
@@ -216,7 +216,7 @@ async function downloadBlobBackup(blobFileName) {
     if (!fs.existsSync(ROUTER_DOWNLOAD_BLOB_BACKUP)) {
       console.log(
         ROUTER_DOWNLOAD_BLOB_BACKUP +
-          'Directorio no existe, Creando...'
+        'Directorio no existe, Creando...'
       );
       fs.mkdirSync(ROUTER_DOWNLOAD_BLOB_BACKUP);
       console.log(ROUTER_DOWNLOAD_BLOB_BACKUP + ' created.');
@@ -235,7 +235,7 @@ async function downloadBlobBackup(blobFileName) {
     }
     //instancio la conexion con el servicio a azure para descargar el blob al directorio seleccionado
     const response = await getBlobBackUp(blobFileName);
-   
+
     return response;
   } catch (error) {
     console.error(error);
@@ -248,7 +248,7 @@ function getBlob(blobFileName) {
       CONTAINER_NAME,
       blobFileName,
       ROUTER_DOWNLOAD_BLOB + '/' + blobFileName,
-      function(error) {
+      function (error) {
         if (error) {
           console.log(error);
           reject(false);
@@ -266,7 +266,7 @@ function getBlobBackUp(blobFileName) {
       CONTAINER_NAME_FINALIZADOS_BACKUP,
       blobFileName,
       ROUTER_DOWNLOAD_BLOB_BACKUP + '/' + blobFileName,
-      function(error) {
+      function (error) {
         if (error) {
           console.log(error);
           reject(false);
@@ -285,19 +285,19 @@ function pushfile(containerName, file) {
   return new Promise((resolve, reject) => {
     try {
       blobService.createBlockBlobFromLocalFile(
-        containerName, 
-        file.blobName, 
-        file.pathFile, 
+        containerName,
+        file.blobName,
+        file.pathFile,
         (error, result, response) => {
           if (!error) {
             resolve({ res: true, result: result });
           } else {
-            reject( {res: false, result: error});
+            reject({ res: false, result: error });
           }
         }
       );
     } catch (error) {
-      reject( {res: false, result: error});
+      reject({ res: false, result: error });
     }
   });
 }
@@ -318,22 +318,22 @@ async function showBlobs(blobServiceClient, containerName) {
 
 
 async function veryContainer(containerName) {
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve, reject) => {
     try {
-      blobService.createContainerIfNotExists(containerName, function(
-         err,
-         result,
-         response
-       ) {
-         if (err) {
-           console.log("Couldn't create container %s", containerName);
-           reject(err);
-           console.error(err);
-         } else {
-            resolve(result);
-           }
-           // Your code goes here
-         }
+      blobService.createContainerIfNotExists(containerName, function (
+        err,
+        result,
+        response
+      ) {
+        if (err) {
+          console.log("Couldn't create container %s", containerName);
+          reject(err);
+          console.error(err);
+        } else {
+          resolve(result);
+        }
+        // Your code goes here
+      }
       )
     } catch (error) {
       reject(error);
@@ -341,7 +341,7 @@ async function veryContainer(containerName) {
   });
 }
 
-function deleteContainer (container, callback) {
+function deleteContainer(container, callback) {
   // Delete the container.
   blobService.deleteContainerIfExists(container, function (error) {
     if (error) {
@@ -356,7 +356,7 @@ function deleteContainer (container, callback) {
 async function deletedBlobForPath(blobFile) {
   try {
     spinner.start();
-    spinner.text= `${chalk.blue('Eliminando Blobs...')}`
+    spinner.text = `${chalk.blue('Eliminando Blobs...')}`
     var pathLevels = blobFile.name.split('/');
     var filesDeleted = 0;
     for await (const blob of CONTAINER_CLIENT.listBlobsFlat()) {
@@ -374,19 +374,19 @@ async function deletedBlobForPath(blobFile) {
       }
     }
     spinner.succeed(`${chalk.red('Blobs eliminados...')} ${filesDeleted}`);
-      
+
   } catch (error) {
     console.log(error);
   }
 }
 
-async function deleteBlob(container, blob){
-  return new Promise((resolve, reject)=>{
+async function deleteBlob(container, blob) {
+  return new Promise((resolve, reject) => {
     try {
       blobService.deleteBlobIfExists(container, blob, (err, result) => {
-         if(err) reject(err);
-         
-         resolve(result);
+        if (err) reject(err);
+
+        resolve(result);
       });
     } catch (error) {
       reject(error);
@@ -394,34 +394,34 @@ async function deleteBlob(container, blob){
   })
 }
 
-function veryBlob(nameContainer,blobName) {
-  return new Promise((resolve, reject)=>{
+function veryBlob(nameContainer, blobName) {
+  return new Promise((resolve, reject) => {
     try {
-      blobService.getBlobProperties(nameContainer, blobName, function(
-       err,
-       properties,
-       status
-     ) {
+      blobService.getBlobProperties(nameContainer, blobName, function (
+        err,
+        properties,
+        status
+      ) {
 
-       if (err){
-         resolve(false);
-       } 
-       if(status !== null){
-         if(status.hasOwnProperty('statusCode')){
-           if (status.statusCode === 200) {
-             resolve(true);
-           } else {
-             resolve(false);
-           }
-         }else{
-           reject(false);
-         }
-       }else{
-        reject(false);
-      }    
-     });
+        if (err) {
+          resolve(false);
+        }
+        if (status !== null) {
+          if (status.hasOwnProperty('statusCode')) {
+            if (status.statusCode === 200) {
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          } else {
+            reject(false);
+          }
+        } else {
+          reject(false);
+        }
+      });
     } catch (error) {
-      console.log("funcion error",error)
+      console.log("funcion error", error)
       reject(error);
     }
   })
@@ -433,10 +433,10 @@ module.exports = {
   initServiceClient,
   pushfile,
   searchJsonBlob,
-  veryContainer, 
-  veryBlob, 
-  downloadPdf, 
-  ListPdf, 
+  veryContainer,
+  veryBlob,
+  downloadPdf,
+  ListPdf,
   searchPdf,
   deleteBlob
 };
