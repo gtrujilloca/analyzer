@@ -34,6 +34,21 @@ function azureApi(app) {
       next(err);
     }
   });
+
+  router.post('/buscarHospital', async function(req, res, next) {
+    try {
+      const resPdf = await AzureService.ListPdfHospital(
+        req.body.hospital
+      );
+      console.log(resPdf);
+      res.status(200).json({
+        data: resPdf,
+        message: 'Pdfs encontrado'
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 }
 
 module.exports = azureApi;

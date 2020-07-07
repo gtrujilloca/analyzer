@@ -1,6 +1,6 @@
 const config = require('./config/index');
 const cron = require('node-cron');
-const runAutomator = require('./services/runAutomator');
+const initAutomator = require('./services/runAutomator');
 const Ora = require('ora');
 const chalk = require('chalk');
 const spinner = new Ora();
@@ -16,12 +16,11 @@ const spinner = new Ora();
 try {
   console.log(`${chalk.blue('OSCANN ANALYZER Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
-     //cron.schedule('  */1 * * * *', () => {
+     cron.schedule('  */1 * * * *', () => {
         spinner.succeed(`${chalk.blue('Buscando Blobs en Azure ...')}`)
             spinner.color = 'green';
-              runAutomator();
-              //searchFilesRunOctave(`${path}/${jsonName}`, path); 
-      //});
+            initAutomator();
+      });
 } catch (error) {
               console.log("Tarea Detenida");
 }

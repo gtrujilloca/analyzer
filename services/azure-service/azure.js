@@ -134,7 +134,6 @@ async function downloadBlobForPath(blobFile, numbersFilesContainer, dataPaciente
       fecha: new Date()
     });
   }
-
 }
 
 // List PDF blob(s) contenedor.
@@ -151,6 +150,24 @@ async function ListPdf() {
   }
   return pdfArray;
 }
+
+// List PDF blob(s) contenedor.
+async function ListPdfHospital(nombreHospitalBuscar) {
+  pdfArray = [];
+  await initServiceClientBackup();
+  for await (const blob of CONTAINER_CLIENT_BACKUP.listBlobsFlat()) {
+    if (extname.extname(blob.name) === '.pdf') {
+      const hospital = blob.name.split(`/`)[0];
+      if(nombreHospitalBuscar === hospital){
+        const label = blob.name.split(`/`)[1].split(`patologia_`)[1];
+        const JsonName = `${urlAzureDownoload}${hospital}/patologia_${label}/paciente_${label}/paciente_${label}.json`;
+        pdfArray.push({ urlPdf: urlAzureDownoload + blob.name, hospital: hospital, label: label, jsonName: JsonName, fecha: blob.properties.lastModified });
+      }
+    }
+  }
+  return pdfArray;
+}
+
 
 
 // EndPoint descargar blob pdf
@@ -438,5 +455,6 @@ module.exports = {
   downloadPdf,
   ListPdf,
   searchPdf,
-  deleteBlob
+  deleteBlob,
+  ListPdfHospital
 };

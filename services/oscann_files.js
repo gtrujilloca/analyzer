@@ -83,9 +83,7 @@ const searchFilesOscann = async () => {
           process.filesPush.splice(0, 1)
         }
         process.estadoServidor=false;
-      }
-    
-    
+      }    
   }
   else
     console.log('Sin conexion a internet');

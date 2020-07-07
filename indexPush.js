@@ -13,10 +13,9 @@ process.estadoServidor = false ;
 
 
 try {  
-  //retryFileFailedUpload();
   console.log(`${chalk.blue('Inicio Automator Este proceso se ejecutara cada minuto ...')}`);
   spinner.start();
-      cron.schedule('  */10 * * * * *', () => {
+      cron.schedule('  */30 * * * * *', () => {
         spinner.text= `${chalk.yellow('Buscando archivos para subir al servidor ...')}`
         if(!process.estadoServidor){
           searchFilesOscann();
@@ -26,10 +25,3 @@ try {
 } catch (error) {
   console.log("Tarea Detenida");
 }
-
-
-// azureApi(app);
-
-//  app.listen(config.port, function(){
-//      console.log(`Listening http://localhost:${config.port}`);
-//  });
