@@ -35,7 +35,7 @@ function azureApi(app) {
     }
   });
 
-  router.post('/buscarHospital', async function(req, res, next) {
+  router.post('/buscarhospital', async function(req, res, next) {
     try {
       const resPdf = await AzureService.ListPdfHospital(
         req.body.hospital
