@@ -10,7 +10,7 @@ const azureApi = require('./routes/azure-routers/azure');
 var cors = require('cors') 
 
 app.use(cors())
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({extended:true}));
 email(app);
 azureApi(app);
 
